@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro | Data SAAS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .password-strength-meter {
+        height: 5px;
+        background: #ddd;
+        margin-top: 5px;
+        border-radius: 3px;
+    }
+    
+    .password-strength-meter div {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.5s ease;
+    }
+    
+    .strength-weak {
+        width: 25%;
+        background: #ff4d4d;
+    }
+    
+    .strength-medium {
+        width: 50%;
+        background: #ffd700;
+    }
+    
+    .strength-strong {
+        width: 75%;
+        background: #90ee90;
+    }
+    
+    .strength-very-strong {
+        width: 100%;
+        background: #3cb371;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Cadastro</h2>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        {{ form.email.label_tag }}
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="text-danger">{{ form.email.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Apenas emails corporativos são aceitos.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.full_name.label_tag }}
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                        <div class="text-danger">{{ form.full_name.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Digite seu nome completo.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.position.label_tag }}
+                        {{ form.position }}
+                        {% if form.position.errors %}
+                        <div class="text-danger">{{ form.position.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.password1.label_tag }}
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                        <div class="text-danger">{{ form.password1.errors }}</div>
+                        {% endif %}
+                        <div class="password-strength-meter">
+                            <div id="password-strength-bar"></div>
+                        </div>
+                        <small id="password-strength-text" class="form-text text-muted">
+                            A senha deve ter pelo menos 8 caracteres, incluindo letras, números e caracteres especiais.
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.password2.label_tag }}
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                        <div class="text-danger">{{ form.password2.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Cadastrar</button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p>Já tem uma conta? <a href="{% url "login" %}">Faça login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const passwordInput = document.getElementById("password1");
+        const strengthBar = document.getElementById("password-strength-bar");
+        const strengthText = document.getElementById("password-strength-text");
+        
+        passwordInput.addEventListener("input", function() {
+            const password = passwordInput.value;
+            const strength = checkPasswordStrength(password);
+            
+            // Remover classes antigas
+            strengthBar.className = "";
+            
+            // Aplicar novas classes com base na força da senha
+            if (strength === 0) {
+                strengthBar.className = "";
+                strengthBar.style.width = "0";
+                strengthText.textContent = "A senha deve ter pelo menos 8 caracteres, incluindo letras, números e caracteres especiais.";
+            } else if (strength === 1) {
+                strengthBar.className = "strength-weak";
+                strengthText.textContent = "Senha fraca - adicione mais caracteres e diversidade.";
+            } else if (strength === 2) {
+                strengthBar.className = "strength-medium";
+                strengthText.textContent = "Senha média - adicione mais diversidade de caracteres.";
+            } else if (strength === 3) {
+                strengthBar.className = "strength-strong";
+                strengthText.textContent = "Senha forte - boa combinação de caracteres.";
+            } else {
+                strengthBar.className = "strength-very-strong";
+                strengthText.textContent = "Senha muito forte - excelente!";
+            }
+        });
+        
+        function checkPasswordStrength(password) {
+            if (!password) return 0;
+            
+            let strength = 0;
+            
+            // Verificar comprimento
+            if (password.length >= 8) strength += 1;
+            
+            // Verificar letras minúsculas
+            if (/[a-z]/.test(password)) strength += 1;
+            
+            // Verificar letras maiúsculas
+            if (/[A-Z]/.test(password)) strength += 1;
+            
+            // Verificar números
+            if (/\d/.test(password)) strength += 1;
+            
+            // Verificar caracteres especiais
+            if (/[^a-zA-Z0-9]/.test(password)) strength += 1;
+            
+            return Math.min(4, Math.floor(strength / 1.25));
+        }
+    });
+</script>
+{% endblock %}

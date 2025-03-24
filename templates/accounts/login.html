@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Login | Data SAAS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Login</h2>
+                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    Credenciais inválidas. Por favor, tente novamente.
+                </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        {{ form.username.label_tag }}
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <div class="text-danger">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.password.label_tag }}
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                        <div class="text-danger">{{ form.password.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Entrar</button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p>Não tem uma conta? <a href="{% url "signup" %}">Cadastre-se</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
