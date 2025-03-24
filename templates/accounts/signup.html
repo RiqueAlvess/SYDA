@@ -1,172 +1,207 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Cadastro | Data SAAS{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
 <style>
-    .password-strength-meter {
-        height: 5px;
-        background: #ddd;
-        margin-top: 5px;
-        border-radius: 3px;
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--vitalis-50);
+        position: relative;
+        overflow: hidden;
     }
     
-    .password-strength-meter div {
-        height: 100%;
-        border-radius: 3px;
-        transition: width 0.5s ease;
+    .bg-grid {
+        position: absolute;
+        inset: 0;
+        background-image: 
+            linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        z-index: -1;
+    }
+
+    .mask-radial {
+        mask-image: radial-gradient(circle at center, black, transparent 80%);
+        -webkit-mask-image: radial-gradient(circle at center, black, transparent 80%);
     }
     
-    .strength-weak {
-        width: 25%;
-        background: #ff4d4d;
-    }
-    
-    .strength-medium {
-        width: 50%;
-        background: #ffd700;
-    }
-    
-    .strength-strong {
-        width: 75%;
-        background: #90ee90;
-    }
-    
-    .strength-very-strong {
+    .auth-form {
         width: 100%;
-        background: #3cb371;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 40px 0;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .glass-panel {
+        position: relative;
+        z-index: 10;
+    }
+
+    .auth-logo {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+    
+    .auth-logo a {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+    
+    .auth-title {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+    
+    .auth-title h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 24px;
+        margin-bottom: 8px;
+    }
+    
+    .auth-title p {
+        color: var(--text-secondary);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+    
+    .form-control:focus {
+        border-color: var(--vitalis-400);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    }
+    
+    .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 4px;
+    }
+    
+    .form-hint {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+    
+    .auth-footer {
+        text-align: center;
+        margin-top: 24px;
+    }
+    
+    .auth-footer a {
+        color: var(--vitalis-600);
+        text-decoration: none;
+    }
+    
+    .auth-footer a:hover {
+        text-decoration: underline;
     }
 </style>
+<script>
+    // Redirecionar usuários logados
+    if ({% if user.is_authenticated %}true{% else %}false{% endif %}) {
+        window.location.href = "{% url 'dashboard' %}";
+    }
+</script>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">Cadastro</h2>
+<div class="auth-container">
+    <div class="bg-grid mask-radial"></div>
+    
+    <div class="auth-form">
+        <div class="auth-logo">
+            <a href="/">Data<span style="color: var(--vitalis-600);">SAAS</span></a>
+        </div>
+        
+        <div class="auth-title">
+            <h1>Crie sua conta</h1>
+            <p>Preencha o formulário abaixo para começar</p>
+        </div>
+        
+        <div class="glass-panel glass-strong">
+            <form method="post">
+                {% csrf_token %}
                 
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        {{ form.email.label_tag }}
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                        <div class="text-danger">{{ form.email.errors }}</div>
-                        {% endif %}
-                        <small class="form-text text-muted">Apenas emails corporativos são aceitos.</small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.full_name.label_tag }}
-                        {{ form.full_name }}
-                        {% if form.full_name.errors %}
-                        <div class="text-danger">{{ form.full_name.errors }}</div>
-                        {% endif %}
-                        <small class="form-text text-muted">Digite seu nome completo.</small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.position.label_tag }}
-                        {{ form.position }}
-                        {% if form.position.errors %}
-                        <div class="text-danger">{{ form.position.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.password1.label_tag }}
-                        {{ form.password1 }}
-                        {% if form.password1.errors %}
-                        <div class="text-danger">{{ form.password1.errors }}</div>
-                        {% endif %}
-                        <div class="password-strength-meter">
-                            <div id="password-strength-bar"></div>
-                        </div>
-                        <small id="password-strength-text" class="form-text text-muted">
-                            A senha deve ter pelo menos 8 caracteres, incluindo letras, números e caracteres especiais.
-                        </small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.password2.label_tag }}
-                        {{ form.password2 }}
-                        {% if form.password2.errors %}
-                        <div class="text-danger">{{ form.password2.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Cadastrar</button>
-                    </div>
-                </form>
-                
-                <div class="text-center mt-3">
-                    <p>Já tem uma conta? <a href="{% url "login" %}">Faça login</a></p>
+                <div class="form-group">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <div class="error-message">{{ form.email.errors }}</div>
+                    {% endif %}
+                    <div class="form-hint">Apenas emails corporativos são aceitos.</div>
                 </div>
+                
+                <div class="form-group">
+                    {{ form.full_name.label_tag }}
+                    {{ form.full_name }}
+                    {% if form.full_name.errors %}
+                    <div class="error-message">{{ form.full_name.errors }}</div>
+                    {% endif %}
+                    <div class="form-hint">Digite seu nome completo.</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.position.label_tag }}
+                    {{ form.position }}
+                    {% if form.position.errors %}
+                    <div class="error-message">{{ form.position.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.password1.label_tag }}
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                    <div class="error-message">{{ form.password1.errors }}</div>
+                    {% endif %}
+                    <div class="form-hint">
+                        A senha deve ter pelo menos 8 caracteres, incluindo letras, números e caracteres especiais.
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.password2.label_tag }}
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                    <div class="error-message">{{ form.password2.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Cadastrar</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Já tem uma conta? <a href="{% url "login" %}">Faça login</a></p>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const passwordInput = document.getElementById("password1");
-        const strengthBar = document.getElementById("password-strength-bar");
-        const strengthText = document.getElementById("password-strength-text");
-        
-        passwordInput.addEventListener("input", function() {
-            const password = passwordInput.value;
-            const strength = checkPasswordStrength(password);
-            
-            // Remover classes antigas
-            strengthBar.className = "";
-            
-            // Aplicar novas classes com base na força da senha
-            if (strength === 0) {
-                strengthBar.className = "";
-                strengthBar.style.width = "0";
-                strengthText.textContent = "A senha deve ter pelo menos 8 caracteres, incluindo letras, números e caracteres especiais.";
-            } else if (strength === 1) {
-                strengthBar.className = "strength-weak";
-                strengthText.textContent = "Senha fraca - adicione mais caracteres e diversidade.";
-            } else if (strength === 2) {
-                strengthBar.className = "strength-medium";
-                strengthText.textContent = "Senha média - adicione mais diversidade de caracteres.";
-            } else if (strength === 3) {
-                strengthBar.className = "strength-strong";
-                strengthText.textContent = "Senha forte - boa combinação de caracteres.";
-            } else {
-                strengthBar.className = "strength-very-strong";
-                strengthText.textContent = "Senha muito forte - excelente!";
-            }
-        });
-        
-        function checkPasswordStrength(password) {
-            if (!password) return 0;
-            
-            let strength = 0;
-            
-            // Verificar comprimento
-            if (password.length >= 8) strength += 1;
-            
-            // Verificar letras minúsculas
-            if (/[a-z]/.test(password)) strength += 1;
-            
-            // Verificar letras maiúsculas
-            if (/[A-Z]/.test(password)) strength += 1;
-            
-            // Verificar números
-            if (/\d/.test(password)) strength += 1;
-            
-            // Verificar caracteres especiais
-            if (/[^a-zA-Z0-9]/.test(password)) strength += 1;
-            
-            return Math.min(4, Math.floor(strength / 1.25));
-        }
-    });
-</script>
-{% endblock %}
+{% block extra_js %}{% endblock %}

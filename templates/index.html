@@ -1,0 +1,395 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Data SAAS - Transforme dados de absenteísmo em insights estratégicos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<style>
+  .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 0;
+      z-index: 100;
+      background-color: transparent !important; 
+      transition: all 0.3s ease;
+      box-shadow: none; 
+  }
+
+  
+  .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+  }
+  
+  .nav-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-decoration: none;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Sombra para legibilidade */
+  }
+  
+  .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+  }
+  
+  .nav-link {
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: color 0.2s ease;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Sombra para legibilidade */
+  }
+  
+  .nav-link:hover {
+      color: var(--vitalis-600);
+  }
+  
+  .nav-buttons {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+  }
+  
+  .section {
+      padding: 100px 0;
+      scroll-margin-top: 80px;
+  }
+  
+  .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+          linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: 0;
+  }
+  
+  @media (max-width: 768px) {
+      .nav-links {
+          display: none;
+      }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Improved Navigation Bar -->
+<nav class="navbar" id="navbar">
+    <div class="container nav-container">
+        <a href="/" class="nav-logo">
+            Data<span style="color: var(--vitalis-600);">SAAS</span>
+        </a>
+        
+        <ul class="nav-links">
+            <li><a href="#features" class="nav-link">Recursos</a></li>
+            <li><a href="#how-it-works" class="nav-link">Como Funciona</a></li>
+            <li><a href="#pricing" class="nav-link">Preços</a></li>
+        </ul>
+        
+        <div class="nav-buttons">
+            <a href="{% url 'login' %}" class="btn btn-outline">Login</a>
+            <a href="{% url 'signup' %}" class="btn btn-primary">Comece Agora</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="bg-grid"></div>
+    
+    <div class="hero-content animate-fade-in">
+        <h1>Transforme dados de absenteísmo em <span class="text-gradient">insights estratégicos</span></h1>
+        <p>Monitore, analise e reduza o absenteísmo na sua empresa com uma plataforma completa de analytics</p>
+        
+        <div class="flex flex-col flex-md-row gap-4 justify-center">
+            <a href="{% url 'signup' %}" class="btn btn-primary btn-lg">
+                Comece Agora
+                <i class="fas fa-arrow-right"></i>
+            </a>
+            <a href="{% url 'login' %}" class="btn btn-outline btn-lg">
+                Acessar Plataforma
+            </a>
+        </div>
+    </div>
+    
+    <div class="container animate-fade-in animate-delay-300 my-12">
+        <div class="glass-panel glass-strong">
+            <div style="position: relative; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden;">
+                <img src="{% static 'images/dashboard_preview.jpg' %}" alt="Dashboard do Data SAAS" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://placehold.co/1200x675/f5faff/2563eb?text=Dashboard+Preview'">
+                <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2));"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section container" id="features">
+    <div class="text-center mb-12">
+        <h2 class="text-gradient" style="font-size: 2.5rem; font-weight: 700; margin-bottom: 16px;">Recursos Poderosos</h2>
+        <p style="color: var(--text-secondary); max-width: 800px; margin: 0 auto;">
+            Nossa plataforma oferece tudo o que você precisa para gerenciar e reduzir o absenteísmo na sua empresa
+        </p>
+    </div>
+    
+    <div class="grid grid-cols-1 grid-cols-3">
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <h3>Dashboard Intuitivo</h3>
+            <p class="text-secondary">Visualize as principais métricas de absenteísmo em um dashboard intuitivo e personalizável.</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-sync-alt"></i>
+            </div>
+            <h3>Sincronização Automática</h3>
+            <p class="text-secondary">Integração com a API SOC para sincronização automática dos dados de funcionários e absenteísmo.</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <h3>Análises Detalhadas</h3>
+            <p class="text-secondary">Relatórios completos por setor, unidade, gênero e CID para identificar padrões e causas.</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <h3>Cálculo de Custos</h3>
+            <p class="text-secondary">Estime o impacto financeiro do absenteísmo na sua empresa e projete economias potenciais.</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3>Gerenciamento de Equipes</h3>
+            <p class="text-secondary">Visualize dados detalhados de cada funcionário, incluindo histórico completo de afastamentos.</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-file-export"></i>
+            </div>
+            <h3>Exportação de Dados</h3>
+            <p class="text-secondary">Exporte relatórios em diversos formatos para compartilhar com sua equipe ou utilizar em outras ferramentas.</p>
+        </div>
+    </div>
+</section>
+
+<section class="section container" id="how-it-works" style="background-color: var(--vitalis-50);">
+    <div class="text-center mb-12">
+        <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 16px;">Como <span class="text-gradient">Funciona</span></h2>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
+            Em apenas 3 passos simples, você pode começar a monitorar o absenteísmo na sua empresa
+        </p>
+    </div>
+    
+    <div class="grid grid-cols-1 grid-cols-3" style="max-width: 900px; margin: 0 auto;">
+        <div class="step">
+            <div class="step-number">
+                1
+                <div class="step-line" style="display: none;"></div>
+            </div>
+            <h3>Integre</h3>
+            <p class="text-secondary">Configure a integração com a API SOC em minutos.</p>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">
+                2
+                <div class="step-line" style="display: none;"></div>
+            </div>
+            <h3>Sincronize</h3>
+            <p class="text-secondary">Importe os dados de funcionários e absenteísmo automaticamente.</p>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">
+                3
+            </div>
+            <h3>Analise</h3>
+            <p class="text-secondary">Visualize relatórios detalhados e tome decisões baseadas em dados.</p>
+        </div>
+    </div>
+</section>
+
+<section class="section container" id="pricing">
+    <div class="text-center mb-12">
+        <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 16px;">Planos <span class="text-gradient">Acessíveis</span></h2>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
+            Escolha o melhor plano para sua empresa e comece a reduzir o absenteísmo hoje mesmo
+        </p>
+    </div>
+    
+    <div class="grid grid-cols-1 grid-cols-2 gap-8" style="max-width: 900px; margin: 0 auto;">
+        <div class="pricing-card">
+            <div class="pricing-header">
+                <h3 class="pricing-name">Gratuito</h3>
+                <p class="pricing-description">Para empresas que estão começando.</p>
+            </div>
+            
+            <div class="pricing-price">R$ 0</div>
+            <p class="pricing-period">Para sempre</p>
+            
+            <ul class="pricing-features">
+                <li>
+                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                    <span>Limite de 3 meses de histórico</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                    <span>Dashboard básico</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                    <span>Até 50 funcionários</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                    <span>Sincronização manual</span>
+                </li>
+            </ul>
+            
+            <a href="{% url 'signup' %}" class="btn btn-outline" style="width: 100%;">
+                Começar grátis
+            </a>
+        </div>
+        
+        <div class="pricing-card recommended">
+            <div class="recommended-badge">Recomendado</div>
+            
+            <div class="pricing-header">
+                <h3 class="pricing-name">Premium</h3>
+                <p class="pricing-description">Para empresas que precisam de recursos avançados.</p>
+            </div>
+            
+            <div class="pricing-price">R$ 299</div>
+            <p class="pricing-period">por mês</p>
+            
+            <ul class="pricing-features">
+                <li>
+                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                    <span>Histórico completo ilimitado</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                    <span>Dashboard avançado com análise de custos</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                    <span>Funcionários ilimitados</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                    <span>Sincronização automática</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                    <span>Relatórios avançados</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                    <span>Exportação de dados</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                    <span>Suporte prioritário</span>
+                </li>
+            </ul>
+            
+            <a href="{% url 'signup' %}" class="btn btn-primary" style="width: 100%;">
+                Experimente 14 dias grátis
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Mostrar conectores entre os passos apenas em telas maiores
+    function updateStepLines() {
+        const stepLines = document.querySelectorAll('.step-line');
+        if (window.innerWidth >= 1024) {
+            stepLines.forEach(line => {
+                line.style.display = 'block';
+            });
+        } else {
+            stepLines.forEach(line => {
+                line.style.display = 'none';
+            });
+        }
+    }
+    
+    window.addEventListener('load', updateStepLines);
+    window.addEventListener('resize', updateStepLines);
+</script>
+{% endblock %}
+
+{% block footer %}
+<footer style="background-color: var(--vitalis-50); padding: 64px 0 32px;">
+    <div class="container">
+        <div class="grid grid-cols-1 grid-cols-3 gap-8 mb-12">
+            <div>
+                <a href="/" style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); text-decoration: none; display: inline-block; margin-bottom: 16px;">
+                    Data<span style="color: var(--vitalis-600);">SAAS</span>
+                </a>
+                <p style="color: var(--text-secondary);">
+                    Transforme dados de absenteísmo em insights estratégicos para sua empresa.
+                </p>
+            </div>
+            
+            <div>
+                <h3 style="font-size: 1.2rem; margin-bottom: 16px;">Links Rápidos</h3>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="margin-bottom: 8px;"><a href="#features" style="text-decoration: none; color: var(--text-secondary);">Recursos</a></li>
+                    <li style="margin-bottom: 8px;"><a href="#how-it-works" style="text-decoration: none; color: var(--text-secondary);">Como Funciona</a></li>
+                    <li style="margin-bottom: 8px;"><a href="#pricing" style="text-decoration: none; color: var(--text-secondary);">Preços</a></li>
+                    <li style="margin-bottom: 8px;"><a href="{% url 'login' %}" style="text-decoration: none; color: var(--text-secondary);">Login</a></li>
+                    <li style="margin-bottom: 8px;"><a href="{% url 'signup' %}" style="text-decoration: none; color: var(--text-secondary);">Cadastro</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 style="font-size: 1.2rem; margin-bottom: 16px;">Contato</h3>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="margin-bottom: 8px; color: var(--text-secondary);"><i class="fas fa-envelope" style="width: 20px;"></i> contato@datasaas.com.br</li>
+                    <li style="margin-bottom: 8px; color: var(--text-secondary);"><i class="fas fa-phone" style="width: 20px;"></i> (11) 99999-9999</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div style="border-top: 1px solid var(--border-color); padding-top: 32px; text-align: center; color: var(--text-secondary);">
+            <p>© 2025 Data SAAS. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</footer>
+{% endblock %}

@@ -1,47 +1,174 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Login | Data SAAS{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<style>
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--vitalis-50);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -1; 
+    }
+    
+    .mask-radial {
+        mask-image: radial-gradient(circle at center, black, transparent 80%);
+        -webkit-mask-image: radial-gradient(circle at center, black, transparent 80%);
+    }
+
+    .glass-panel {
+    position: relative;
+    z-index: 10; 
+    }
+    
+    .auth-form {
+    width: 100%;
+    max-width: 400px; 
+    margin: 0 auto;
+    padding: 40px 0;
+    position: relative;
+    z-index: 10; 
+    }
+    
+    .auth-logo {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+    
+    .auth-logo a {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+    
+    .auth-title {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+    
+    .auth-title h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 24px;
+        margin-bottom: 8px;
+    }
+    
+    .auth-title p {
+        color: var(--text-secondary);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+    
+    .form-control:focus {
+        border-color: var(--vitalis-400);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    }
+    
+    .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 4px;
+    }
+    
+    .auth-footer {
+        text-align: center;
+        margin-top: 24px;
+    }
+    
+    .auth-footer a {
+        color: var(--vitalis-600);
+        text-decoration: none;
+    }
+    
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+</style>
+<script>
+    // Redirecionar usuários logados
+    if ({% if user.is_authenticated %}true{% else %}false{% endif %}) {
+        window.location.href = "{% url 'dashboard' %}";
+    }
+</script>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">Login</h2>
+<div class="auth-container">
+    <div class="bg-grid mask-radial"></div>
+    
+    <div class="auth-form">
+        <div class="auth-logo">
+            <a href="/">Data<span style="color: var(--vitalis-600);">SAAS</span></a>
+        </div>
+        
+        <div class="auth-title">
+            <h1>Bem-vindo de volta</h1>
+            <p>Entre na sua conta para acessar o dashboard</p>
+        </div>
+        
+        <div class="glass-panel glass-strong">
+            {% if form.errors %}
+            <div style="background-color: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                Credenciais inválidas. Por favor, tente novamente.
+            </div>
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
                 
-                {% if form.errors %}
-                <div class="alert alert-danger">
-                    Credenciais inválidas. Por favor, tente novamente.
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Email</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="error-message">{{ form.username.errors }}</div>
+                    {% endif %}
                 </div>
-                {% endif %}
                 
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        {{ form.username.label_tag }}
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                        <div class="text-danger">{{ form.username.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.password.label_tag }}
-                        {{ form.password }}
-                        {% if form.password.errors %}
-                        <div class="text-danger">{{ form.password.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Entrar</button>
-                    </div>
-                </form>
-                
-                <div class="text-center mt-3">
-                    <p>Não tem uma conta? <a href="{% url "signup" %}">Cadastre-se</a></p>
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}">Senha</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <div class="error-message">{{ form.password.errors }}</div>
+                    {% endif %}
                 </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Não tem uma conta? <a href="{% url "signup" %}">Cadastre-se</a></p>
             </div>
         </div>
     </div>

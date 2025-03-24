@@ -10,10 +10,18 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <div class="container-fluid p-0">
-        {% block content %}{% endblock %}
-    </div>
+    <!-- Navbar incluída apenas se não for a homepage e não for página de login/signup -->
+    {% if request.path != '/' and request.path != '/accounts/login/' and request.path != '/accounts/signup/' %}
+    {% include 'includes/navbar.html' %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
     
+    <!-- Footer customizado para a página inicial -->
+    {% if request.path == '/' %}
+    {% block footer %}{% endblock %}
+    {% endif %}
+
     <!-- Overlay de carregamento global -->
     <div id="loading-overlay" style="display: none;">
         <div class="spinner-border text-primary" role="status">

@@ -10,6 +10,15 @@ from django_ratelimit.decorators import ratelimit
 from clients.models import Client
 
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from django.contrib.auth import logout
+
+
+def custom_logout(request):
+    logout(request)
+    # Forçar limpeza da sessão
+    request.session.flush()
+    # Definir uma URL absoluta para evitar problemas de resolução
+    return redirect('/')
 
 # Importar modelo de funcionário, se o app employees estiver disponível
 try:
@@ -24,6 +33,12 @@ class CustomLoginView(LoginView):
     
     form_class = CustomAuthenticationForm
     template_name = "accounts/login.html"
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Redirecionar usuários já logados
+        if request.user.is_authenticated:
+            return redirect('dashboard')
+        return super().dispatch(request, *args, **kwargs)
     
     def form_valid(self, form):
         remember_me = form.cleaned_data.get("remember_me", False)
@@ -40,6 +55,12 @@ class SignUpView(CreateView):
     form_class = CustomUserCreationForm
     template_name = "accounts/signup.html"
     success_url = reverse_lazy("login")
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Redirecionar usuários já logados
+        if request.user.is_authenticated:
+            return redirect('dashboard')
+        return super().dispatch(request, *args, **kwargs)
     
     def form_valid(self, form):
         response = super().form_valid(form)
