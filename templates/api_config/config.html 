@@ -1,22 +1,26 @@
 {% extends 'base.html' %}
 
-{% block title %}Configurações API | Data SAAS{% endblock %}
+{% block title %}Configurações API | SYDA{% endblock %}
 
 {% block extra_css %}
 <style>
     .card-header-tabs .nav-link {
-        color: #6c757d;
+        color: var(--text-secondary);
         font-weight: 500;
+        padding: 10px 20px;
+        border-radius: 0;
+        transition: all 0.3s ease;
     }
     
     .card-header-tabs .nav-link.active {
-        color: #495057;
+        color: var(--primary);
         font-weight: 600;
-        border-bottom: 2px solid #0d6efd;
+        background-color: transparent;
+        border-bottom: 2px solid var(--accent);
     }
     
-    .form-check-label {
-        margin-left: 5px;
+    .card-header-tabs .nav-link:hover:not(.active) {
+        background-color: rgba(87, 196, 229, 0.05);
     }
     
     .status-checks {
@@ -28,17 +32,36 @@
     
     .form-check {
         min-width: 100px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    
+    .form-check-label {
+        margin-left: 8px;
+        cursor: pointer;
+    }
+    
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-{% include 'includes/navbar.html' with active='api_config' %}
-
 <div class="container py-4">
     <div class="row">
         <div class="col-12">
-            <h1 class="mb-4">Configurações da API</h1>
+            <h1 class="mb-4 text-primary">Configurações da API</h1>
             
             {% if messages %}
             <div class="alerts">
@@ -53,14 +76,14 @@
             
             {% if no_clients %}
             <div class="alert alert-danger">
-                <h4 class="alert-heading">Nenhum cliente encontrado!</h4>
+                <h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> Nenhum cliente encontrado!</h4>
                 <p>Não há clientes cadastrados no sistema. Antes de configurar as APIs, é necessário ter pelo menos um cliente.</p>
                 <hr>
                 <p class="mb-0">Por favor, contate o administrador do sistema para cadastrar um cliente.</p>
             </div>
             {% else %}
             <div class="card">
-                <div class="card-header">
+                <div class="card-header bg-white">
                     <ul class="nav nav-tabs card-header-tabs" id="apiConfigTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <a class="nav-link {% if active_tab == 'employee' %}active{% endif %}" 
@@ -70,7 +93,7 @@
                                role="tab" 
                                aria-controls="employee-content" 
                                aria-selected="{% if active_tab == 'employee' %}true{% else %}false{% endif %}">
-                                Funcionários
+                                <i class="fas fa-users me-1"></i> Funcionários
                             </a>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -81,7 +104,7 @@
                                role="tab" 
                                aria-controls="absence-content" 
                                aria-selected="{% if active_tab == 'absence' %}true{% else %}false{% endif %}">
-                                Absenteísmo
+                                <i class="fas fa-calendar-minus me-1"></i> Absenteísmo
                             </a>
                         </li>
                     </ul>
@@ -89,7 +112,7 @@
                 <div class="card-body">
                     <div class="tab-content" id="apiConfigTabsContent">
                         <!-- Tab de Funcionários -->
-                        <div class="tab-pane fade {% if active_tab == 'employee' %}show active{% endif %}" 
+                        <div class="tab-pane fade {% if active_tab == 'employee' %}show active{% endif %} animate-fade-in" 
                              id="employee-content" 
                              role="tabpanel" 
                              aria-labelledby="employee-tab">
@@ -98,68 +121,72 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="form_type" value="employee">
                                 
-                                <div class="row mb-3">
-                                    <div class="col-md-4">
+                                <div class="row mb-4">
+                                    <div class="col-md-4 mb-3">
                                         <label for="{{ employee_form.company.id_for_label }}" class="form-label">Empresa</label>
                                         {{ employee_form.company }}
                                         {% if employee_form.company.errors %}
-                                        <div class="text-danger">
+                                        <div class="text-danger mt-1 small">
                                             {{ employee_form.company.errors }}
                                         </div>
                                         {% endif %}
+                                        <div class="form-text">Nome da empresa principal no sistema SOC</div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-4 mb-3">
                                         <label for="{{ employee_form.code.id_for_label }}" class="form-label">Código</label>
                                         {{ employee_form.code }}
                                         {% if employee_form.code.errors %}
-                                        <div class="text-danger">
+                                        <div class="text-danger mt-1 small">
                                             {{ employee_form.code.errors }}
                                         </div>
                                         {% endif %}
+                                        <div class="form-text">Código de acesso fornecido pelo SOC</div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-4 mb-3">
                                         <label for="{{ employee_form.key.id_for_label }}" class="form-label">Chave</label>
                                         {{ employee_form.key }}
                                         {% if employee_form.key.errors %}
-                                        <div class="text-danger">
+                                        <div class="text-danger mt-1 small">
                                             {{ employee_form.key.errors }}
                                         </div>
                                         {% endif %}
+                                        <div class="form-text">Chave de acesso fornecida pelo SOC</div>
                                     </div>
                                 </div>
                                 
-                                <div class="row mb-4">
-                                    <div class="col-12">
-                                        <label class="form-label">Status para sincronização</label>
+                                <div class="card mb-4 border-0 bg-light">
+                                    <div class="card-body">
+                                        <h5 class="mb-3">Status para sincronização</h5>
+                                        <p class="text-muted small mb-3">Selecione quais status de funcionários devem ser incluídos na sincronização:</p>
                                         <div class="status-checks">
                                             <div class="form-check">
                                                 {{ employee_form.is_active }}
                                                 <label class="form-check-label" for="{{ employee_form.is_active.id_for_label }}">
-                                                    Ativo
+                                                    <span class="badge bg-success">Ativo</span>
                                                 </label>
                                             </div>
                                             <div class="form-check">
                                                 {{ employee_form.is_inactive }}
                                                 <label class="form-check-label" for="{{ employee_form.is_inactive.id_for_label }}">
-                                                    Inativo
+                                                    <span class="badge bg-secondary">Inativo</span>
                                                 </label>
                                             </div>
                                             <div class="form-check">
                                                 {{ employee_form.is_away }}
                                                 <label class="form-check-label" for="{{ employee_form.is_away.id_for_label }}">
-                                                    Afastado
+                                                    <span class="badge bg-warning text-dark">Afastado</span>
                                                 </label>
                                             </div>
                                             <div class="form-check">
                                                 {{ employee_form.is_pending }}
                                                 <label class="form-check-label" for="{{ employee_form.is_pending.id_for_label }}">
-                                                    Pendente
+                                                    <span class="badge bg-primary">Pendente</span>
                                                 </label>
                                             </div>
                                             <div class="form-check">
                                                 {{ employee_form.is_vacation }}
                                                 <label class="form-check-label" for="{{ employee_form.is_vacation.id_for_label }}">
-                                                    Férias
+                                                    <span class="badge bg-info">Férias</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -167,17 +194,21 @@
                                 </div>
                                 
                                 <div class="d-flex justify-content-between">
-                                    <button type="submit" class="btn btn-primary">Salvar Configurações</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i> Salvar Configurações
+                                    </button>
                                     
                                     {% if employee_credentials %}
-                                    <a href="#" class="btn btn-success">Sincronizar Agora</a>
+                                    <a href="{% url 'sync_employees' %}" class="btn btn-success" id="sync-employees-btn">
+                                        <i class="fas fa-sync-alt me-1"></i> Sincronizar Agora
+                                    </a>
                                     {% endif %}
                                 </div>
                             </form>
                         </div>
                         
                         <!-- Tab de Absenteísmo -->
-                        <div class="tab-pane fade {% if active_tab == 'absence' %}show active{% endif %}" 
+                        <div class="tab-pane fade {% if active_tab == 'absence' %}show active{% endif %} animate-fade-in" 
                              id="absence-content" 
                              role="tabpanel" 
                              aria-labelledby="absence-tab">
@@ -186,75 +217,89 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="form_type" value="absence">
                                 
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3">
                                         <label for="{{ absence_form.main_company.id_for_label }}" class="form-label">Empresa Principal</label>
                                         {{ absence_form.main_company }}
                                         {% if absence_form.main_company.errors %}
-                                        <div class="text-danger">
+                                        <div class="text-danger mt-1 small">
                                             {{ absence_form.main_company.errors }}
                                         </div>
                                         {% endif %}
+                                        <div class="form-text">Nome da empresa principal no sistema SOC</div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 mb-3">
                                         <label for="{{ absence_form.work_company.id_for_label }}" class="form-label">Empresa Trabalho</label>
                                         {{ absence_form.work_company }}
                                         {% if absence_form.work_company.errors %}
-                                        <div class="text-danger">
+                                        <div class="text-danger mt-1 small">
                                             {{ absence_form.work_company.errors }}
                                         </div>
                                         {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="{{ absence_form.code.id_for_label }}" class="form-label">Código</label>
-                                        {{ absence_form.code }}
-                                        {% if absence_form.code.errors %}
-                                        <div class="text-danger">
-                                            {{ absence_form.code.errors }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="{{ absence_form.key.id_for_label }}" class="form-label">Chave</label>
-                                        {{ absence_form.key }}
-                                        {% if absence_form.key.errors %}
-                                        <div class="text-danger">
-                                            {{ absence_form.key.errors }}
-                                        </div>
-                                        {% endif %}
+                                        <div class="form-text">Nome da empresa de trabalho no sistema SOC</div>
                                     </div>
                                 </div>
                                 
                                 <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <label for="{{ absence_form.start_date.id_for_label }}" class="form-label">Data Início</label>
-                                        {{ absence_form.start_date }}
-                                        {% if absence_form.start_date.errors %}
-                                        <div class="text-danger">
-                                            {{ absence_form.start_date.errors }}
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ absence_form.code.id_for_label }}" class="form-label">Código</label>
+                                        {{ absence_form.code }}
+                                        {% if absence_form.code.errors %}
+                                        <div class="text-danger mt-1 small">
+                                            {{ absence_form.code.errors }}
                                         </div>
                                         {% endif %}
+                                        <div class="form-text">Código de acesso fornecido pelo SOC</div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="{{ absence_form.end_date.id_for_label }}" class="form-label">Data Fim</label>
-                                        {{ absence_form.end_date }}
-                                        {% if absence_form.end_date.errors %}
-                                        <div class="text-danger">
-                                            {{ absence_form.end_date.errors }}
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ absence_form.key.id_for_label }}" class="form-label">Chave</label>
+                                        {{ absence_form.key }}
+                                        {% if absence_form.key.errors %}
+                                        <div class="text-danger mt-1 small">
+                                            {{ absence_form.key.errors }}
                                         </div>
                                         {% endif %}
-                                        <small class="form-text text-muted">Limite máximo de 30 dias entre as datas</small>
+                                        <div class="form-text">Chave de acesso fornecida pelo SOC</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card mb-4 border-0 bg-light">
+                                    <div class="card-body">
+                                        <h5 class="mb-3">Período de Sincronização</h5>
+                                        <p class="text-muted small mb-3">Defina o período de absenteísmo para sincronização (máximo de 30 dias):</p>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ absence_form.start_date.id_for_label }}" class="form-label">Data Início</label>
+                                                {{ absence_form.start_date }}
+                                                {% if absence_form.start_date.errors %}
+                                                <div class="text-danger mt-1 small">
+                                                    {{ absence_form.start_date.errors }}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ absence_form.end_date.id_for_label }}" class="form-label">Data Fim</label>
+                                                {{ absence_form.end_date }}
+                                                {% if absence_form.end_date.errors %}
+                                                <div class="text-danger mt-1 small">
+                                                    {{ absence_form.end_date.errors }}
+                                                </div>
+                                                {% endif %}
+                                                <div class="form-text">Limite máximo de 30 dias entre as datas</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 
                                 <div class="d-flex justify-content-between">
-                                    <button type="submit" class="btn btn-primary">Salvar Configurações</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i> Salvar Configurações
+                                    </button>
                                     
                                     {% if absence_credentials %}
-                                    <a href="#" class="btn btn-success">Sincronizar Agora</a>
+                                    <a href="{% url 'sync_absences' %}" class="btn btn-success" id="sync-absences-btn">
+                                        <i class="fas fa-sync-alt me-1"></i> Sincronizar Agora
+                                    </a>
                                     {% endif %}
                                 </div>
                             </form>
@@ -281,6 +326,101 @@
                 tabTrigger.show()
             })
         })
+        
+        // Função para exibir mensagem de alerta
+        function showAlert(formElement, message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            formElement.appendChild(alertDiv);
+            
+            // Remover alerta após 10 segundos
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 10000);
+        }
+        
+        // Adicione um evento de clique aos botões de sincronização
+        const employeeSyncBtn = document.querySelector('a#sync-employees-btn');
+        if (employeeSyncBtn) {
+            employeeSyncBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Mostrar spinner enquanto processa
+                const originalText = this.innerHTML;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Iniciando...';
+                this.disabled = true;
+                
+                // Fazer requisição AJAX para iniciar sincronização de funcionários
+                fetch('{% url "sync_employees" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Restaurar botão
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                    
+                    if (data.success) {
+                        // Mostrar mensagem de sucesso
+                        showAlert(this.closest('form'), data.message + ' <a href="{% url "sync_logs" %}" class="alert-link">Ver logs</a>', 'success');
+                    } else {
+                        // Mostrar mensagem de erro
+                        showAlert(this.closest('form'), data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                    console.error('Erro:', error);
+                    showAlert(this.closest('form'), 'Erro ao iniciar sincronização. Tente novamente mais tarde.', 'danger');
+                });
+            });
+        }
+        
+        // Repetir o mesmo para o botão de sincronização de absenteísmo
+        const absenceSyncBtn = document.querySelector('a#sync-absences-btn');
+        if (absenceSyncBtn) {
+            absenceSyncBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const originalText = this.innerHTML;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Iniciando...';
+                this.disabled = true;
+                
+                fetch('{% url "sync_absences" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                    
+                    if (data.success) {
+                        showAlert(this.closest('form'), data.message + ' <a href="{% url "sync_logs" %}" class="alert-link">Ver logs</a>', 'success');
+                    } else {
+                        showAlert(this.closest('form'), data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                    console.error('Erro:', error);
+                    showAlert(this.closest('form'), 'Erro ao iniciar sincronização. Tente novamente mais tarde.', 'danger');
+                });
+            });
+        }
     });
 </script>
 {% endblock %}

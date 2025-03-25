@@ -1,15 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard de Absenteísmo | Data SAAS{% endblock %}
+{% block title %}Dashboard de Absenteísmo | SYDA{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 {% endblock %}
 
 {% block content %}
-
-
 <div class="container py-4">
     <div class="dashboard-header">
         <h1>Dashboard de Absenteísmo</h1>
@@ -20,7 +18,7 @@
     <section class="filter-panel">
         <div class="panel-header">
             <h2>Filtros</h2>
-            <button id="reset-filters" class="btn btn-secondary">Limpar Filtros</button>
+            <button id="reset-filters" class="btn btn-outline">Limpar Filtros</button>
         </div>
         
         <div class="filter-grid">

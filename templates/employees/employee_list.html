@@ -1,209 +1,214 @@
 {% extends 'base.html' %}
 
-{% block title %}Funcionários | Data SAAS{% endblock %}
+{% block title %}Funcionários | SYDA{% endblock %}
 
 {% block content %}
-
 <div class="container py-4">
-    <div class="row">
-        <div class="col-12 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h1 class="card-title mb-0">Funcionários</h1>
-                        <div>
-                            <a href="{% url 'sync_employees' %}" class="btn btn-primary">
-                                <i class="fas fa-sync"></i> Sincronizar
-                            </a>
-                        </div>
-                    </div>
-                    
-                    {% if last_sync %}
-                    <div class="text-muted small mb-3">
-                        Última sincronização: {{ last_sync.created_at|date:"d/m/Y H:i" }} - 
-                        {{ last_sync.records_success }} funcionários sincronizados
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Formulário de filtro -->
-                    <form method="get" class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <input type="text" name="search" class="form-control" placeholder="Buscar por nome, matrícula ou CPF" value="{{ search }}">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <select name="situacao" class="form-select" onchange="this.form.submit()">
-                                <option value="">Todas as situações</option>
-                                {% for status in situacoes_disponiveis %}
-                                <option value="{{ status }}" {% if situacao == status %}selected{% endif %}>{{ status }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            {% if search or situacao %}
-                            <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary w-100">
-                                Limpar filtros
-                            </a>
-                            {% endif %}
-                        </div>
-                    </form>
-                    
-                    <!-- Contadores -->
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Total de Funcionários</h5>
-                                    <h2>{{ total_employees }}</h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Situações</h5>
-                                    <div class="row">
-                                        {% if situacao_counts.ATIVO %}
-                                        <div class="col-md-4 mb-2">
-                                            <span class="badge bg-success p-2">Ativos: {{ situacao_counts.ATIVO }}</span>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        {% if situacao_counts.INATIVO %}
-                                        <div class="col-md-4 mb-2">
-                                            <span class="badge bg-secondary p-2">Inativos: {{ situacao_counts.INATIVO }}</span>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        {% if situacao_counts.FERIAS %}
-                                        <div class="col-md-4 mb-2">
-                                            <span class="badge bg-info p-2">Em Férias: {{ situacao_counts.FERIAS }}</span>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        {% if situacao_counts.AFASTADO %}
-                                        <div class="col-md-4 mb-2">
-                                            <span class="badge bg-warning p-2">Afastados: {{ situacao_counts.AFASTADO }}</span>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        {% if situacao_counts.PENDENTE %}
-                                        <div class="col-md-4 mb-2">
-                                            <span class="badge bg-primary p-2">Pendentes: {{ situacao_counts.PENDENTE }}</span>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        {% for sit, count in situacao_counts.items %}
-                                            {% if sit != 'ATIVO' and sit != 'INATIVO' and sit != 'FERIAS' and sit != 'AFASTADO' and sit != 'PENDENTE' %}
-                                            <div class="col-md-4 mb-2">
-                                                <span class="badge bg-dark p-2">{{ sit }}: {{ count }}</span>
-                                            </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="card-title">Funcionários</h1>
+                <a href="{% url 'sync_employees' %}" class="btn btn-primary">
+                    <i class="fas fa-sync me-1"></i> Sincronizar
+                </a>
             </div>
-        </div>
-        
-        <div class="col-12">
-            {% if employees %}
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Matrícula</th>
-                                    <th>CPF</th>
-                                    <th>Cargo</th>
-                                    <th>Unidade</th>
-                                    <th>Situação</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for employee in employees %}
-                                <tr>
-                                    <td>{{ employee.nome }}</td>
-                                    <td>{{ employee.matricula_funcionario|default:"-" }}</td>
-                                    <td>{{ employee.cpf|default:"-" }}</td>
-                                    <td>{{ employee.nome_cargo|default:"-" }}</td>
-                                    <td>{{ employee.nome_unidade|default:"-" }}</td>
-                                    <td>
-                                        <span class="badge {% if employee.situacao == 'ATIVO' %}bg-success{% elif employee.situacao == 'INATIVO' %}bg-secondary{% elif employee.situacao == 'AFASTADO' %}bg-warning{% elif employee.situacao == 'FERIAS' %}bg-info{% else %}bg-secondary{% endif %}">
-                                            {{ employee.situacao|default:"N/A" }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'employee_detail' employee.id %}" class="btn btn-sm btn-outline-primary">Detalhes</a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- Paginação -->
-                    {% if is_paginated %}
-                    <nav aria-label="Paginação">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if situacao %}&situacao={{ situacao }}{% endif %}" aria-label="Primeira">
-                                    <span aria-hidden="true">&laquo;&laquo;</span>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if situacao %}&situacao={{ situacao }}{% endif %}" aria-label="Anterior">
-                                    <span aria-hidden="true">&laquo;</span>
-                                </a>
-                            </li>
-                            {% endif %}
-                            
-                            {% for i in paginator.page_range %}
-                                {% if page_obj.number == i %}
-                                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                                {% elif i > page_obj.number|add:'-5' and i < page_obj.number|add:'5' %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ i }}{% if search %}&search={{ search }}{% endif %}{% if situacao %}&situacao={{ situacao }}{% endif %}">
-                                        {{ i }}
-                                    </a>
-                                </li>
-                                {% endif %}
-                            {% endfor %}
-                            
-                            {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if situacao %}&situacao={{ situacao }}{% endif %}" aria-label="Próxima">
-                                    <span aria-hidden="true">&raquo;</span>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if situacao %}&situacao={{ situacao }}{% endif %}" aria-label="Última">
-                                    <span aria-hidden="true">&raquo;&raquo;</span>
-                                </a>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                    {% endif %}
-                </div>
-            </div>
-            {% else %}
-            <div class="alert alert-info">
-                Nenhum funcionário encontrado. Utilize o botão Sincronizar para buscar dados da API.
+            {% if last_sync %}
+            <div class="text-muted small mt-2">
+                Última sincronização: {{ last_sync.created_at|date:"d/m/Y H:i" }} - 
+                {{ last_sync.records_success }} funcionários sincronizados
             </div>
             {% endif %}
         </div>
+        <div class="card-body">
+            <!-- Formulário de filtro -->
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Buscar por nome, matrícula ou CPF" value="{{ search }}">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select name="situacao" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todas as situações</option>
+                        {% for status in situacoes_disponiveis %}
+                        <option value="{{ status }}" {% if situacao == status %}selected{% endif %}>{{ status }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    {% if search or situacao %}
+                    <a href="{% url 'employee_list' %}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-undo me-1"></i> Limpar
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+            
+            <!-- Contadores -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-light border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-primary">Total de Funcionários</h5>
+                            <h2 class="my-3">{{ total_employees }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">Situações</h5>
+                            <div class="row mt-3">
+                                {% if situacao_counts.ATIVO %}
+                                <div class="col-md-4 mb-2">
+                                    <span class="badge bg-success p-2 d-inline-block w-100 text-center">
+                                        <i class="fas fa-user-check me-1"></i> Ativos: {{ situacao_counts.ATIVO }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if situacao_counts.INATIVO %}
+                                <div class="col-md-4 mb-2">
+                                    <span class="badge bg-secondary p-2 d-inline-block w-100 text-center">
+                                        <i class="fas fa-user-times me-1"></i> Inativos: {{ situacao_counts.INATIVO }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if situacao_counts.FERIAS %}
+                                <div class="col-md-4 mb-2">
+                                    <span class="badge bg-info p-2 d-inline-block w-100 text-center">
+                                        <i class="fas fa-umbrella-beach me-1"></i> Em Férias: {{ situacao_counts.FERIAS }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if situacao_counts.AFASTADO %}
+                                <div class="col-md-4 mb-2">
+                                    <span class="badge bg-warning p-2 d-inline-block w-100 text-center">
+                                        <i class="fas fa-user-injured me-1"></i> Afastados: {{ situacao_counts.AFASTADO }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if situacao_counts.PENDENTE %}
+                                <div class="col-md-4 mb-2">
+                                    <span class="badge bg-primary p-2 d-inline-block w-100 text-center">
+                                        <i class="fas fa-hourglass-half me-1"></i> Pendentes: {{ situacao_counts.PENDENTE }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                {% for sit, count in situacao_counts.items %}
+                                    {% if sit != 'ATIVO' and sit != 'INATIVO' and sit != 'FERIAS' and sit != 'AFASTADO' and sit != 'PENDENTE' %}
+                                    <div class="col-md-4 mb-2">
+                                        <span class="badge bg-dark p-2 d-inline-block w-100 text-center">
+                                            <i class="fas fa-user-alt me-1"></i> {{ sit }}: {{ count }}
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    
+    {% if employees %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Matrícula</th>
+                            <th>CPF</th>
+                            <th>Cargo</th>
+                            <th>Unidade</th>
+                            <th>Situação</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employee in employees %}
+                        <tr>
+                            <td>{{ employee.nome }}</td>
+                            <td>{{ employee.matricula_funcionario|default:"-" }}</td>
+                            <td>{{ employee.cpf|default:"-" }}</td>
+                            <td>{{ employee.nome_cargo|default:"-" }}</td>
+                            <td>{{ employee.nome_unidade|default:"-" }}</td>
+                            <td>
+                                <span class="badge {% if employee.situacao == 'ATIVO' %}bg-success{% elif employee.situacao == 'INATIVO' %}bg-secondary{% elif employee.situacao == 'AFASTADO' %}bg-warning{% elif employee.situacao == 'FERIAS' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {{ employee.situacao|default:"N/A" }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'employee_detail' employee.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i> Detalhes
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginação -->
+            {% if is_paginated %}
+            <nav aria-label="Paginação" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if situacao %}&situacao={{ situacao }}{% endif %}" aria-label="Primeira">
+                            <span aria-hidden="true"><i class="fas fa-angle-double-left"></i></span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if situacao %}&situacao={{ situacao }}{% endif %}" aria-label="Anterior">
+                            <span aria-hidden="true"><i class="fas fa-angle-left"></i></span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% elif i > page_obj.number|add:'-5' and i < page_obj.number|add:'5' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}{% if search %}&search={{ search }}{% endif %}{% if situacao %}&situacao={{ situacao }}{% endif %}">
+                                {{ i }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if situacao %}&situacao={{ situacao }}{% endif %}" aria-label="Próxima">
+                            <span aria-hidden="true"><i class="fas fa-angle-right"></i></span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if situacao %}&situacao={{ situacao }}{% endif %}" aria-label="Última">
+                            <span aria-hidden="true"><i class="fas fa-angle-double-right"></i></span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i> Nenhum funcionário encontrado. Utilize o botão Sincronizar para buscar dados da API.
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

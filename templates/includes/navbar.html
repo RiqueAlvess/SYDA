@@ -1,31 +1,43 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+<nav class="navbar navbar-expand-lg navbar-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'dashboard' %}">Data SAAS</a>
+        <a class="navbar-brand" href="{% url 'dashboard' %}">
+            SY<span>DA</span>
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link {% if active == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a>
+                    <a class="nav-link {% if active == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                        <i class="fas fa-chart-line me-1"></i> Dashboard
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if active == 'employees' %}active{% endif %}" href="{% url 'employee_list' %}">Funcionários</a>
+                    <a class="nav-link {% if active == 'employees' %}active{% endif %}" href="{% url 'employee_list' %}">
+                        <i class="fas fa-users me-1"></i> Funcionários
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if active == 'sync_logs' %}active{% endif %}" href="{% url 'sync_logs' %}">Log de Sincronização</a>
+                    <a class="nav-link {% if active == 'sync_logs' %}active{% endif %}" href="{% url 'sync_logs' %}">
+                        <i class="fas fa-history me-1"></i> Log de Sincronização
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if active == 'api_config' %}active{% endif %}" href="{% url 'api_config' %}">Configurações API</a>
+                    <a class="nav-link {% if active == 'api_config' %}active{% endif %}" href="{% url 'api_config' %}">
+                        <i class="fas fa-cog me-1"></i> Configurações API
+                    </a>
                 </li>
             </ul>
             <div class="d-flex">
                 <span class="navbar-text me-3">
-                    Olá, {{ user.full_name }}
+                    <i class="fas fa-user-circle me-1"></i> Olá, {{ user.full_name }}
                 </span>
                 <form method="post" action="{% url 'logout' %}" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger">Sair</button>
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="fas fa-sign-out-alt me-1"></i> Sair
+                    </button>
                 </form>
             </div>
         </div>

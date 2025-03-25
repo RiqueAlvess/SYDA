@@ -1,330 +1,378 @@
 {% extends 'base.html' %}
 
-{% block title %}Detalhes do Funcionário | Data SAAS{% endblock %}
+{% block title %}Detalhes do Funcionário | SYDA{% endblock %}
 
 {% block content %}
-
 <div class="container py-4">
-    <div class="row">
-        <div class="col-12">
-            <nav aria-label="breadcrumb" class="mb-4">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'employee_list' %}">Funcionários</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ employee.nome }}</li>
-                </ol>
-            </nav>
-            
-            <div class="card mb-4">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">Informações do Funcionário</h3>
-                        <div>
-                            <span class="badge {% if employee.situacao == 'ATIVO' %}bg-success{% elif employee.situacao == 'INATIVO' %}bg-secondary{% elif employee.situacao == 'AFASTADO' %}bg-warning{% elif employee.situacao == 'FERIAS' %}bg-info{% else %}bg-secondary{% endif %}">
-                                {{ employee.situacao|default:"N/A" }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5 class="border-bottom pb-2 mb-3">Dados Pessoais</h5>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Nome:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.nome }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">CPF:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.cpf|default:"-" }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">RG:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">
-                                        {{ employee.rg|default:"-" }}
-                                        {% if employee.orgao_emissor_rg or employee.uf_rg %}
-                                        ({{ employee.orgao_emissor_rg|default:"" }} {{ employee.uf_rg|default:"" }})
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Data de Nascimento:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">
-                                        {% if employee.data_nascimento %}
-                                        {{ employee.data_nascimento|date:"d/m/Y" }}
-                                        {% else %}
-                                        -
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Sexo:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">
-                                        {% if employee.sexo == 1 %}
-                                        Masculino
-                                        {% elif employee.sexo == 2 %}
-                                        Feminino
-                                        {% else %}
-                                        -
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Estado Civil:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">
-                                        {% if employee.estado_civil == 1 %}
-                                        Solteiro(a)
-                                        {% elif employee.estado_civil == 2 %}
-                                        Casado(a)
-                                        {% elif employee.estado_civil == 3 %}
-                                        Separado(a)
-                                        {% elif employee.estado_civil == 4 %}
-                                        Desquitado(a)
-                                        {% elif employee.estado_civil == 5 %}
-                                        Viúvo(a)
-                                        {% elif employee.estado_civil == 6 %}
-                                        Outros
-                                        {% elif employee.estado_civil == 7 %}
-                                        Divorciado(a)
-                                        {% else %}
-                                        -
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Escolaridade:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.escolaridade|default:"-" }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Nome da Mãe:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.nome_mae|default:"-" }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <h5 class="border-bottom pb-2 mb-3">Dados Profissionais</h5>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Matrícula:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.matricula_funcionario|default:"-" }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Empresa:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.nome_empresa|default:"-" }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Unidade:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.nome_unidade|default:"-" }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Setor:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.nome_setor|default:"-" }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Cargo:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.nome_cargo|default:"-" }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Centro de Custo:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.nome_centro_custo|default:"-" }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Data de Admissão:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">
-                                        {% if employee.data_admissao %}
-                                        {{ employee.data_admissao|date:"d/m/Y" }}
-                                        {% else %}
-                                        -
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Regime de Trabalho:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.regime_trabalho|default:"-" }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Contato -->
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <h5 class="border-bottom pb-2 mb-3">Contato</h5>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Email:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.email|default:"-" }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Telefone Residencial:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.telefone_residencial|default:"-" }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Telefone Celular:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.telefone_celular|default:"-" }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Telefone Comercial:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.tel_comercial|default:"-" }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Endereço -->
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <h5 class="border-bottom pb-2 mb-3">Endereço</h5>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Logradouro:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">
-                                        {{ employee.endereco|default:"-" }}
-                                        {% if employee.numero_endereco %}
-                                        , {{ employee.numero_endereco }}
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Bairro:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.bairro|default:"-" }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">Cidade/UF:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">
-                                        {% if employee.cidade or employee.uf %}
-                                        {{ employee.cidade|default:"" }}{% if employee.cidade and employee.uf %}/{% endif %}{{ employee.uf|default:"" }}
-                                        {% else %}
-                                        -
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3 row">
-                                <label class="col-sm-4 col-form-label">CEP:</label>
-                                <div class="col-sm-8">
-                                    <p class="form-control-plaintext">{{ employee.cep|default:"-" }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Absenteísmo -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="mb-0">Histórico de Absenteísmo</h3>
-                </div>
-                <div class="card-body">
-                    {% if absences %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Período</th>
-                                    <th>Dias Afastados</th>
-                                    <th>CID</th>
-                                    <th>Grupo Patológico</th>
-                                    <th>Tipo de Licença</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for absence in absences %}
-                                <tr>
-                                    <td>
-                                        {% if absence.dt_inicio_atestado %}
-                                        {{ absence.dt_inicio_atestado|date:"d/m/Y" }}
-                                        {% if absence.dt_fim_atestado and absence.dt_fim_atestado != absence.dt_inicio_atestado %}
-                                        até {{ absence.dt_fim_atestado|date:"d/m/Y" }}
-                                        {% endif %}
-                                        {% else %}
-                                        -
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ absence.dias_afastados|default:"-" }}</td>
-                                    <td title="{{ absence.descricao_cid|default:'' }}">{{ absence.cid_principal|default:"-" }}</td>
-                                    <td>{{ absence.grupo_patologico|default:"-" }}</td>
-                                    <td>{{ absence.tipo_licenca|default:"-" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'employee_list' %}" class="text-decoration-none">Funcionários</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ employee.nome }}</li>
+        </ol>
+    </nav>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0 card-title">Informações do Funcionário</h3>
+                <span class="badge {% if employee.situacao == 'ATIVO' %}bg-success{% elif employee.situacao == 'INATIVO' %}bg-secondary{% elif employee.situacao == 'AFASTADO' %}bg-warning{% elif employee.situacao == 'FERIAS' %}bg-info{% else %}bg-secondary{% endif %} p-2">
+                    {% if employee.situacao == 'ATIVO' %}
+                        <i class="fas fa-user-check me-1"></i>
+                    {% elif employee.situacao == 'INATIVO' %}
+                        <i class="fas fa-user-times me-1"></i>
+                    {% elif employee.situacao == 'AFASTADO' %}
+                        <i class="fas fa-user-injured me-1"></i>
+                    {% elif employee.situacao == 'FERIAS' %}
+                        <i class="fas fa-umbrella-beach me-1"></i>
                     {% else %}
-                    <div class="text-center py-4">
-                        <p>Nenhum registro de absenteísmo encontrado para este funcionário.</p>
-                    </div>
+                        <i class="fas fa-user-alt me-1"></i>
                     {% endif %}
+                    {{ employee.situacao|default:"N/A" }}
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2 mb-3 text-primary">Dados Pessoais</h5>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Nome:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.nome }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">CPF:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.cpf|default:"-" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">RG:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">
+                                {{ employee.rg|default:"-" }}
+                                {% if employee.orgao_emissor_rg or employee.uf_rg %}
+                                ({{ employee.orgao_emissor_rg|default:"" }} {{ employee.uf_rg|default:"" }})
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Data de Nascimento:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">
+                                {% if employee.data_nascimento %}
+                                {{ employee.data_nascimento|date:"d/m/Y" }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Sexo:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">
+                                {% if employee.sexo == 1 %}
+                                <i class="fas fa-mars me-1 text-primary"></i> Masculino
+                                {% elif employee.sexo == 2 %}
+                                <i class="fas fa-venus me-1 text-danger"></i> Feminino
+                                {% else %}
+                                -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Estado Civil:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">
+                                {% if employee.estado_civil == 1 %}
+                                Solteiro(a)
+                                {% elif employee.estado_civil == 2 %}
+                                Casado(a)
+                                {% elif employee.estado_civil == 3 %}
+                                Separado(a)
+                                {% elif employee.estado_civil == 4 %}
+                                Desquitado(a)
+                                {% elif employee.estado_civil == 5 %}
+                                Viúvo(a)
+                                {% elif employee.estado_civil == 6 %}
+                                Outros
+                                {% elif employee.estado_civil == 7 %}
+                                Divorciado(a)
+                                {% else %}
+                                -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Escolaridade:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.escolaridade|default:"-" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Nome da Mãe:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.nome_mae|default:"-" }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2 mb-3 text-primary">Dados Profissionais</h5>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Matrícula:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.matricula_funcionario|default:"-" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Empresa:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.nome_empresa|default:"-" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Unidade:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.nome_unidade|default:"-" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Setor:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.nome_setor|default:"-" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Cargo:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.nome_cargo|default:"-" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Centro de Custo:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.nome_centro_custo|default:"-" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Data de Admissão:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">
+                                {% if employee.data_admissao %}
+                                {{ employee.data_admissao|date:"d/m/Y" }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Regime de Trabalho:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.regime_trabalho|default:"-" }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
+            <!-- Contato -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 mb-3 text-primary">Contato</h5>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Email:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">
+                                {% if employee.email %}
+                                <a href="mailto:{{ employee.email }}" class="text-decoration-none">
+                                    <i class="fas fa-envelope me-1"></i> {{ employee.email }}
+                                </a>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Telefone Residencial:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">
+                                {% if employee.telefone_residencial %}
+                                <i class="fas fa-phone me-1"></i> {{ employee.telefone_residencial }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Telefone Celular:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">
+                                {% if employee.telefone_celular %}
+                                <i class="fas fa-mobile-alt me-1"></i> {{ employee.telefone_celular }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Telefone Comercial:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">
+                                {% if employee.tel_comercial %}
+                                <i class="fas fa-building me-1"></i> {{ employee.tel_comercial }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Endereço -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 mb-3 text-primary">Endereço</h5>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Logradouro:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">
+                                {% if employee.endereco %}
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                {{ employee.endereco }}
+                                {% if employee.numero_endereco %}
+                                , {{ employee.numero_endereco }}
+                                {% endif %}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Bairro:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.bairro|default:"-" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Cidade/UF:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">
+                                {% if employee.cidade or employee.uf %}
+                                {{ employee.cidade|default:"" }}{% if employee.cidade and employee.uf %}/{% endif %}{{ employee.uf|default:"" }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold text-secondary">CEP:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ employee.cep|default:"-" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Absenteísmo -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0 card-title">Histórico de Absenteísmo</h3>
+        </div>
+        <div class="card-body">
+            {% if absences %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Período</th>
+                            <th>Dias Afastados</th>
+                            <th>CID</th>
+                            <th>Grupo Patológico</th>
+                            <th>Tipo de Licença</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for absence in absences %}
+                        <tr>
+                            <td>
+                                {% if absence.dt_inicio_atestado %}
+                                <i class="far fa-calendar-alt me-1"></i> {{ absence.dt_inicio_atestado|date:"d/m/Y" }}
+                                {% if absence.dt_fim_atestado and absence.dt_fim_atestado != absence.dt_inicio_atestado %}
+                                até {{ absence.dt_fim_atestado|date:"d/m/Y" }}
+                                {% endif %}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if absence.dias_afastados %}
+                                <span class="badge bg-warning text-dark">{{ absence.dias_afastados }} dias</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td title="{{ absence.descricao_cid|default:'' }}">
+                                {% if absence.cid_principal %}
+                                <span class="badge bg-info">{{ absence.cid_principal }}</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>{{ absence.grupo_patologico|default:"-" }}</td>
+                            <td>{{ absence.tipo_licenca|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-clipboard-check fa-3x mb-3 text-muted"></i>
+                <p class="lead">Nenhum registro de absenteísmo encontrado para este funcionário.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
