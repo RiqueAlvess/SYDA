@@ -1,38 +1,209 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Data SAAS - Transforme dados de absenteísmo em insights estratégicos{% endblock %}
+{% block title %}SYDA - Transforme dados de absenteísmo em insights estratégicos{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/main.css' %}">
 <style>
-  .navbar {
+  /* Variáveis de cores para o rebranding */
+  :root {
+      --primary-color: #1A5F7A;       /* Azul profundo (60%) */
+      --secondary-color: #E5E5E5;     /* Cinza claro prateado (30%) */
+      --highlight-color: #57C4E5;     /* Turquesa vibrante (10%) */
+      --text-primary: #333333;
+      --text-secondary: #555555;
+      --bg-light: #fafafa;
+      --border-light: #e0e0e0;
+      --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      --transition-default: all 0.3s ease;
+  }
+
+  /* Reset e estilos globais */
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-primary);
+    line-height: 1.6;
+    scroll-behavior: smooth;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -12px;
+  }
+
+  .col-md-1, .col-md-3, .col-md-4, .col-md-6 {
+    padding: 12px;
+  }
+
+  @media (min-width: 768px) {
+    .col-md-1 { width: 8.333%; }
+    .col-md-3 { width: 25%; }
+    .col-md-4 { width: 33.333%; }
+    .col-md-6 { width: 50%; }
+  }
+
+  /* Botões */
+  .btn {
+    display: inline-block;
+    text-decoration: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: var(--transition-default);
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .btn-lg {
+    padding: 14px 28px;
+    font-size: 1.1rem;
+  }
+
+  .btn-outline {
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    background-color: transparent;
+  }
+
+  .btn-outline:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  .btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(26, 95, 122, 0.2);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--highlight-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(87, 196, 229, 0.3);
+  }
+
+  .w-100 {
+    width: 100%;
+  }
+
+  /* Utilitários */
+  .text-center {
+    text-align: center;
+  }
+
+  .d-flex {
+    display: flex;
+  }
+
+  .flex-column {
+    flex-direction: column;
+  }
+
+  .justify-content-center {
+    justify-content: center;
+  }
+
+  .align-items-center {
+    align-items: center;
+  }
+
+  .gap-4 {
+    gap: 1rem;
+  }
+
+  .mb-12 {
+    margin-bottom: 3rem;
+  }
+
+  .my-12 {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+  }
+
+  .h-100 {
+    height: 100%;
+  }
+
+  .g-4 > * {
+    padding: 1rem;
+  }
+
+  .position-relative {
+    position: relative;
+  }
+
+  /* Animações */
+  .animate-fade-in {
+    animation: fadeIn 1s ease forwards;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Navbar da Landing Page */
+  .landing-navbar {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       padding: 16px 0;
       z-index: 100;
-      background-color: transparent !important; 
+      background-color: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       transition: all 0.3s ease;
-      box-shadow: none; 
   }
 
-  
+  .landing-navbar.scrolled {
+      padding: 12px 0;
+      background-color: rgba(255, 255, 255, 0.98);
+  }
+
   .nav-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
   }
-  
+
   .nav-logo {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      text-decoration: none;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Sombra para legibilidade */
+      display: flex;
+      align-items: center;
+      height: 50px;
+      transition: transform 0.3s ease;
   }
-  
+
+  .nav-logo:hover {
+      transform: scale(1.05);
+  }
+
+  .nav-logo svg {
+      height: 100%;
+      width: auto;
+  }
+
   .nav-links {
       display: flex;
       gap: 32px;
@@ -40,356 +211,706 @@
       margin: 0;
       padding: 0;
   }
-  
+
   .nav-link {
       text-decoration: none;
-      color: var(--text-primary);
+      color: var(--primary-color);
       font-weight: 500;
+      position: relative;
+      padding: 6px 0;
       transition: color 0.2s ease;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Sombra para legibilidade */
   }
-  
+
+  .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--highlight-color);
+      transition: width 0.3s ease;
+  }
+
   .nav-link:hover {
-      color: var(--vitalis-600);
+      color: var(--highlight-color);
   }
-  
+
+  .nav-link:hover::after {
+      width: 100%;
+  }
+
   .nav-buttons {
       display: flex;
-      align-items: center;
-      gap: 16px;
+      gap: 12px;
   }
-  
-  .section {
-      padding: 100px 0;
-      scroll-margin-top: 80px;
+
+  .menu-toggle {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--primary-color);
+      font-size: 1.5rem;
+      cursor: pointer;
   }
-  
+
+  /* Hero Section com fundo ajustado */
+  .hero {
+      position: relative;
+      padding: 160px 0 100px;
+      text-align: center;
+      background: linear-gradient(135deg, #fafafa, #ffffff);
+      overflow: hidden;
+  }
+
+  /* Mantendo a grid, mas com opacidade suave */
   .bg-grid {
       position: absolute;
       inset: 0;
       background-image: 
-          linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+          linear-gradient(to right, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
       background-size: 40px 40px;
       z-index: 0;
   }
-  
+
+  .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      color: var(--text-primary);
+  }
+
+  .hero-content h1 {
+      font-size: 3.2rem;
+      margin-bottom: 24px;
+      line-height: 1.2;
+      font-weight: 800;
+  }
+
+  .hero-content .text-gradient {
+      background: linear-gradient(45deg, var(--primary-color), var(--highlight-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+  }
+
+  .hero-content p {
+      font-size: 1.2rem;
+      margin-bottom: 32px;
+      color: var(--text-secondary);
+  }
+
+  .glass-panel {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+  }
+
+  /* Seções Gerais */
+  .section {
+      padding: 100px 0;
+      scroll-margin-top: 80px;
+  }
+
+  .section-alt {
+      background-color: var(--secondary-color);
+  }
+
+  .section .text-center h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 16px;
+  }
+
+  .section p {
+      color: var(--text-secondary);
+      max-width: 800px;
+      margin: 0 auto 40px;
+  }
+
+  /* Cards de Recursos */
+  .card {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 28px;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+  }
+
+  .card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow);
+  }
+
+  .card-icon {
+      font-size: 2.5rem;
+      color: var(--highlight-color);
+      margin-bottom: 20px;
+      transition: transform 0.3s ease;
+  }
+
+  .card:hover .card-icon {
+      transform: scale(1.1);
+  }
+
+  .card h3 {
+      margin-bottom: 16px;
+      color: var(--primary-color);
+      font-size: 1.5rem;
+  }
+
+  .card p {
+      font-size: 1rem;
+      margin-top: auto;
+      margin-bottom: 0;
+  }
+
+  /* Seção "Como Funciona" com setas */
+  .step-box {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 28px 20px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      height: 100%;
+  }
+
+  .step-box:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow);
+  }
+
+  .step-number {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 12px;
+      display: inline-block;
+      padding: 5px 15px;
+      background: rgba(87, 196, 229, 0.1);
+      border-radius: 50%;
+  }
+
+  .step-arrow {
+      font-size: 2rem;
+      color: var(--highlight-color);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+  }
+
+  /* Seção Pricing */
+  .pricing-card {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 36px 28px;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      height: 100%;
+  }
+
+  .pricing-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow);
+  }
+
+  .pricing-header h3 {
+      color: var(--primary-color);
+      margin-bottom: 8px;
+      font-size: 1.8rem;
+  }
+
+  .pricing-price {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 24px 0 8px;
+      color: var(--highlight-color);
+  }
+
+  .pricing-period {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+  }
+
+  .pricing-features {
+      list-style: none;
+      padding: 0;
+      margin: 24px 0;
+      text-align: left;
+  }
+
+  .pricing-features li {
+      margin-bottom: 12px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+  }
+
+  .pricing-features i {
+      margin-right: 12px;
+      color: var(--highlight-color);
+  }
+
+  .recommended {
+      border: 2px solid var(--highlight-color);
+      box-shadow: 0 6px 24px rgba(87, 196, 229, 0.15);
+      position: relative;
+      transform: scale(1.03);
+  }
+
+  .recommended:hover {
+      transform: scale(1.03) translateY(-6px);
+  }
+
+  .recommended-badge {
+      position: absolute;
+      top: -12px;
+      right: -12px;
+      background: var(--highlight-color);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(87, 196, 229, 0.3);
+  }
+
+  /* Footer */
+  .footer {
+      background-color: #f5f5f7;
+      padding: 64px 0 32px;
+      border-top: 1px solid var(--border-light);
+  }
+
+  .footer-logo {
+      display: block;
+      margin-bottom: 16px;
+      height: 50px;
+  }
+
+  .footer-logo svg {
+      height: 100%;
+      width: auto;
+  }
+
+  .footer-description {
+      color: var(--text-secondary);
+      margin-top: 16px;
+      font-size: 0.95rem;
+  }
+
+  .footer-heading {
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+      font-weight: 600;
+  }
+
+  .footer-links {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+  }
+
+  .footer-links li {
+      margin-bottom: 10px;
+  }
+
+  .footer-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s ease;
+      font-size: 0.95rem;
+  }
+
+  .footer-link:hover {
+      color: var(--highlight-color);
+  }
+
+  .footer-contact-item {
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      font-size: 0.95rem;
+  }
+
+  .footer-contact-item i {
+      width: 20px;
+      margin-right: 10px;
+      color: var(--primary-color);
+  }
+
+  .footer-copyright {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-light);
+  }
+
+  /* Responsividade */
   @media (max-width: 768px) {
-      .nav-links {
+      .hero-content h1 {
+          font-size: 2.2rem;
+      }
+      
+      .menu-toggle {
+          display: block;
+      }
+      
+      .nav-links, .nav-buttons {
           display: none;
+      }
+      
+      .nav-links.active {
+          display: flex;
+          flex-direction: column;
+          position: absolute;
+          top: 80px;
+          left: 0;
+          right: 0;
+          background: white;
+          padding: 20px;
+          box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+          z-index: 100;
+      }
+      
+      .nav-buttons.active {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          margin-top: 16px;
+      }
+
+      .col-md-1, .col-md-3, .col-md-4, .col-md-6 {
+          width: 100%;
+      }
+      
+      .step-arrow {
+          transform: rotate(90deg);
+          margin: 20px 0;
+      }
+      
+      .d-none {
+          display: none;
+      }
+      
+      .d-md-block {
+          display: none;
+      }
+      
+      .section {
+          padding: 60px 0;
       }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Improved Navigation Bar -->
-<nav class="navbar" id="navbar">
-    <div class="container nav-container">
-        <a href="/" class="nav-logo">
-            Data<span style="color: var(--vitalis-600);">SAAS</span>
-        </a>
-        
-        <ul class="nav-links">
-            <li><a href="#features" class="nav-link">Recursos</a></li>
-            <li><a href="#how-it-works" class="nav-link">Como Funciona</a></li>
-            <li><a href="#pricing" class="nav-link">Preços</a></li>
-        </ul>
-        
-        <div class="nav-buttons">
-            <a href="{% url 'login' %}" class="btn btn-outline">Login</a>
-            <a href="{% url 'signup' %}" class="btn btn-primary">Comece Agora</a>
-        </div>
-    </div>
+<!-- Navbar da Landing Page -->
+<nav class="landing-navbar" id="mainNav">
+  <div class="nav-container">
+      <a href="/" class="nav-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60">
+            <style>
+              .logo-text {
+                font-family: 'Arial', sans-serif;
+                font-weight: bold;
+                fill: #E6E6E6;
+                letter-spacing: 10px;
+              }
+            </style>
+            <text x="10" y="45" font-size="48" class="logo-text">SYDA</text>
+          </svg>
+      </a>
+      <button class="menu-toggle" id="menuToggle">
+          <i class="fas fa-bars"></i>
+      </button>
+      <ul class="nav-links" id="navLinks">
+          <li><a href="#features" class="nav-link">Recursos</a></li>
+          <li><a href="#how-it-works" class="nav-link">Como Funciona</a></li>
+          <li><a href="#pricing" class="nav-link">Preços</a></li>
+      </ul>
+      <div class="nav-buttons" id="navButtons">
+          <a href="{% url 'login' %}" class="btn btn-outline">Login</a>
+          <a href="{% url 'signup' %}" class="btn btn-primary">Comece Agora</a>
+      </div>
+  </div>
 </nav>
 
+<!-- Hero Section -->
 <section class="hero">
     <div class="bg-grid"></div>
-    
     <div class="hero-content animate-fade-in">
         <h1>Transforme dados de absenteísmo em <span class="text-gradient">insights estratégicos</span></h1>
-        <p>Monitore, analise e reduza o absenteísmo na sua empresa com uma plataforma completa de analytics</p>
-        
-        <div class="flex flex-col flex-md-row gap-4 justify-center">
+        <p>Monitore, analise e reduza o absenteísmo na sua empresa com uma plataforma completa de analytics.</p>
+        <div class="d-flex flex-column flex-md-row gap-4 justify-content-center">
             <a href="{% url 'signup' %}" class="btn btn-primary btn-lg">
-                Comece Agora
-                <i class="fas fa-arrow-right"></i>
+                Comece Agora <i class="fas fa-arrow-right"></i>
             </a>
             <a href="{% url 'login' %}" class="btn btn-outline btn-lg">
                 Acessar Plataforma
             </a>
         </div>
     </div>
-    
     <div class="container animate-fade-in animate-delay-300 my-12">
-        <div class="glass-panel glass-strong">
+        <div class="glass-panel">
             <div style="position: relative; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden;">
-                <img src="{% static 'images/dashboard_preview.jpg' %}" alt="Dashboard do Data SAAS" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://placehold.co/1200x675/f5faff/2563eb?text=Dashboard+Preview'">
+                <img src="{% static 'images/dashboard_preview.jpg' %}" alt="Dashboard do SYDA" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://placehold.co/1200x675/f5faff/2563eb?text=Dashboard+Preview'">
                 <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2));"></div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section container" id="features">
+<!-- Recursos -->
+<section id="features" class="section container">
     <div class="text-center mb-12">
-        <h2 class="text-gradient" style="font-size: 2.5rem; font-weight: 700; margin-bottom: 16px;">Recursos Poderosos</h2>
-        <p style="color: var(--text-secondary); max-width: 800px; margin: 0 auto;">
-            Nossa plataforma oferece tudo o que você precisa para gerenciar e reduzir o absenteísmo na sua empresa
-        </p>
+        <h2>Recursos <span class="text-gradient">Poderosos</span></h2>
+        <p>Nossa plataforma oferece tudo o que você precisa para gerenciar e reduzir o absenteísmo na sua empresa.</p>
     </div>
-    
-    <div class="grid grid-cols-1 grid-cols-3">
-        <div class="card">
-            <div class="card-icon">
-                <i class="fas fa-chart-bar"></i>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-icon"><i class="fas fa-chart-bar"></i></div>
+                <h3>Dashboard Intuitivo</h3>
+                <p>Visualize as principais métricas em um dashboard intuitivo e personalizável.</p>
             </div>
-            <h3>Dashboard Intuitivo</h3>
-            <p class="text-secondary">Visualize as principais métricas de absenteísmo em um dashboard intuitivo e personalizável.</p>
         </div>
-        
-        <div class="card">
-            <div class="card-icon">
-                <i class="fas fa-sync-alt"></i>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-icon"><i class="fas fa-sync-alt"></i></div>
+                <h3>Sincronização Automática</h3>
+                <p>Integre e sincronize os dados de funcionários automaticamente com a API SOC.</p>
             </div>
-            <h3>Sincronização Automática</h3>
-            <p class="text-secondary">Integração com a API SOC para sincronização automática dos dados de funcionários e absenteísmo.</p>
         </div>
-        
-        <div class="card">
-            <div class="card-icon">
-                <i class="fas fa-chart-pie"></i>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-icon"><i class="fas fa-chart-pie"></i></div>
+                <h3>Análises Detalhadas</h3>
+                <p>Relatórios completos por setor, unidade, gênero e CID para identificar padrões e causas.</p>
             </div>
-            <h3>Análises Detalhadas</h3>
-            <p class="text-secondary">Relatórios completos por setor, unidade, gênero e CID para identificar padrões e causas.</p>
         </div>
-        
-        <div class="card">
-            <div class="card-icon">
-                <i class="fas fa-calculator"></i>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-icon"><i class="fas fa-calculator"></i></div>
+                <h3>Cálculo de Custos</h3>
+                <p>Estime o impacto financeiro do absenteísmo e projete economias potenciais.</p>
             </div>
-            <h3>Cálculo de Custos</h3>
-            <p class="text-secondary">Estime o impacto financeiro do absenteísmo na sua empresa e projete economias potenciais.</p>
         </div>
-        
-        <div class="card">
-            <div class="card-icon">
-                <i class="fas fa-users"></i>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-icon"><i class="fas fa-users"></i></div>
+                <h3>Gerenciamento de Equipes</h3>
+                <p>Acompanhe dados detalhados de cada funcionário e histórico completo de afastamentos.</p>
             </div>
-            <h3>Gerenciamento de Equipes</h3>
-            <p class="text-secondary">Visualize dados detalhados de cada funcionário, incluindo histórico completo de afastamentos.</p>
         </div>
-        
-        <div class="card">
-            <div class="card-icon">
-                <i class="fas fa-file-export"></i>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-icon"><i class="fas fa-file-export"></i></div>
+                <h3>Exportação de Dados</h3>
+                <p>Exporte relatórios em diversos formatos para compartilhar com sua equipe.</p>
             </div>
-            <h3>Exportação de Dados</h3>
-            <p class="text-secondary">Exporte relatórios em diversos formatos para compartilhar com sua equipe ou utilizar em outras ferramentas.</p>
         </div>
     </div>
 </section>
 
-<section class="section container" id="how-it-works" style="background-color: var(--vitalis-50);">
-    <div class="text-center mb-12">
-        <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 16px;">Como <span class="text-gradient">Funciona</span></h2>
-        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
-            Em apenas 3 passos simples, você pode começar a monitorar o absenteísmo na sua empresa
-        </p>
-    </div>
-    
-    <div class="grid grid-cols-1 grid-cols-3" style="max-width: 900px; margin: 0 auto;">
-        <div class="step">
-            <div class="step-number">
-                1
-                <div class="step-line" style="display: none;"></div>
-            </div>
-            <h3>Integre</h3>
-            <p class="text-secondary">Configure a integração com a API SOC em minutos.</p>
+<!-- Como Funciona -->
+<section id="how-it-works" class="section section-alt">
+    <div class="container">
+        <div class="text-center mb-12">
+            <h2>Como <span class="text-gradient">Funciona</span></h2>
+            <p>Em apenas 3 passos simples, você pode começar a monitorar o absenteísmo na sua empresa.</p>
         </div>
-        
-        <div class="step">
-            <div class="step-number">
-                2
-                <div class="step-line" style="display: none;"></div>
+        <div class="row justify-content-center align-items-center">
+            <div class="col-md-3 text-center">
+                <div class="step-box">
+                    <div class="step-number">1</div>
+                    <h4>Integre</h4>
+                    <p>Configure a integração com a API SOC em minutos.</p>
+                </div>
             </div>
-            <h3>Sincronize</h3>
-            <p class="text-secondary">Importe os dados de funcionários e absenteísmo automaticamente.</p>
-        </div>
-        
-        <div class="step">
-            <div class="step-number">
-                3
+            <div class="col-md-1 text-center d-none d-md-block">
+                <i class="fas fa-arrow-right step-arrow"></i>
             </div>
-            <h3>Analise</h3>
-            <p class="text-secondary">Visualize relatórios detalhados e tome decisões baseadas em dados.</p>
-        </div>
-    </div>
-</section>
-
-<section class="section container" id="pricing">
-    <div class="text-center mb-12">
-        <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 16px;">Planos <span class="text-gradient">Acessíveis</span></h2>
-        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
-            Escolha o melhor plano para sua empresa e comece a reduzir o absenteísmo hoje mesmo
-        </p>
-    </div>
-    
-    <div class="grid grid-cols-1 grid-cols-2 gap-8" style="max-width: 900px; margin: 0 auto;">
-        <div class="pricing-card">
-            <div class="pricing-header">
-                <h3 class="pricing-name">Gratuito</h3>
-                <p class="pricing-description">Para empresas que estão começando.</p>
+            <div class="col-md-3 text-center">
+                <div class="step-box">
+                    <div class="step-number">2</div>
+                    <h4>Sincronize</h4>
+                    <p>Importe os dados de funcionários automaticamente.</p>
+                </div>
             </div>
-            
-            <div class="pricing-price">R$ 0</div>
-            <p class="pricing-period">Para sempre</p>
-            
-            <ul class="pricing-features">
-                <li>
-                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                    <span>Limite de 3 meses de histórico</span>
-                </li>
-                <li>
-                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                    <span>Dashboard básico</span>
-                </li>
-                <li>
-                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                    <span>Até 50 funcionários</span>
-                </li>
-                <li>
-                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                    <span>Sincronização manual</span>
-                </li>
-            </ul>
-            
-            <a href="{% url 'signup' %}" class="btn btn-outline" style="width: 100%;">
-                Começar grátis
-            </a>
-        </div>
-        
-        <div class="pricing-card recommended">
-            <div class="recommended-badge">Recomendado</div>
-            
-            <div class="pricing-header">
-                <h3 class="pricing-name">Premium</h3>
-                <p class="pricing-description">Para empresas que precisam de recursos avançados.</p>
+            <div class="col-md-1 text-center d-none d-md-block">
+                <i class="fas fa-arrow-right step-arrow"></i>
             </div>
-            
-            <div class="pricing-price">R$ 299</div>
-            <p class="pricing-period">por mês</p>
-            
-            <ul class="pricing-features">
-                <li>
-                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                    <span>Histórico completo ilimitado</span>
-                </li>
-                <li>
-                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                    <span>Dashboard avançado com análise de custos</span>
-                </li>
-                <li>
-                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                    <span>Funcionários ilimitados</span>
-                </li>
-                <li>
-                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                    <span>Sincronização automática</span>
-                </li>
-                <li>
-                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                    <span>Relatórios avançados</span>
-                </li>
-                <li>
-                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                    <span>Exportação de dados</span>
-                </li>
-                <li>
-                    <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                    <span>Suporte prioritário</span>
-                </li>
-            </ul>
-            
-            <a href="{% url 'signup' %}" class="btn btn-primary" style="width: 100%;">
-                Experimente 14 dias grátis
-            </a>
+            <div class="col-md-3 text-center">
+                <div class="step-box">
+                    <div class="step-number">3</div>
+                    <h4>Analise</h4>
+                    <p>Visualize relatórios detalhados e tome decisões baseadas em dados.</p>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
-<script>
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
-            
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                targetElement.scrollIntoView({
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
-    
-    // Mostrar conectores entre os passos apenas em telas maiores
-    function updateStepLines() {
-        const stepLines = document.querySelectorAll('.step-line');
-        if (window.innerWidth >= 1024) {
-            stepLines.forEach(line => {
-                line.style.display = 'block';
-            });
-        } else {
-            stepLines.forEach(line => {
-                line.style.display = 'none';
-            });
-        }
-    }
-    
-    window.addEventListener('load', updateStepLines);
-    window.addEventListener('resize', updateStepLines);
-</script>
+<!-- Planos -->
+<section id="pricing" class="section container">
+    <div class="text-center mb-12">
+        <h2>Planos <span class="text-gradient">Acessíveis</span></h2>
+        <p>Escolha o melhor plano para sua empresa e comece a reduzir o absenteísmo hoje mesmo.</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-6 position-relative">
+            <div class="pricing-card h-100">
+                <div class="pricing-header">
+                    <h3>Gratuito</h3>
+                    <p>Para empresas que estão começando.</p>
+                </div>
+                <div class="pricing-price">R$ 0</div>
+                <p class="pricing-period">Para sempre</p>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check-circle"></i> Limite de 3 meses de histórico</li>
+                    <li><i class="fas fa-check-circle"></i> Dashboard básico</li>
+                    <li><i class="fas fa-check-circle"></i> Até 50 funcionários</li>
+                    <li><i class="fas fa-check-circle"></i> Sincronização manual</li>
+                </ul>
+                <a href="{% url 'signup' %}" class="btn btn-outline w-100">Começar grátis</a>
+            </div>
+        </div>
+        <div class="col-md-6 position-relative">
+            <div class="pricing-card recommended h-100">
+                <div class="recommended-badge">Recomendado</div>
+                <div class="pricing-header">
+                    <h3>Premium</h3>
+                    <p>Para empresas que precisam de recursos avançados.</p>
+                </div>
+                <div class="pricing-price">R$ 299</div>
+                <p class="pricing-period">por mês</p>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check-circle"></i> Histórico completo ilimitado</li>
+                    <li><i class="fas fa-check-circle"></i> Dashboard avançado com análise de custos</li>
+                    <li><i class="fas fa-check-circle"></i> Funcionários ilimitados</li>
+                    <li><i class="fas fa-check-circle"></i> Sincronização automática</li>
+                    <li><i class="fas fa-check-circle"></i> Relatórios avançados</li>
+                    <li><i class="fas fa-check-circle"></i> Exportação de dados</li>
+                    <li><i class="fas fa-check-circle"></i> Suporte prioritário</li>
+                </ul>
+                <a href="{% url 'signup' %}" class="btn btn-primary w-100">Experimente 14 dias grátis</a>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}
 
 {% block footer %}
-<footer style="background-color: var(--vitalis-50); padding: 64px 0 32px;">
+<footer class="footer">
     <div class="container">
-        <div class="grid grid-cols-1 grid-cols-3 gap-8 mb-12">
-            <div>
-                <a href="/" style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); text-decoration: none; display: inline-block; margin-bottom: 16px;">
-                    Data<span style="color: var(--vitalis-600);">SAAS</span>
+        <div class="row g-4 mb-12">
+            <div class="col-md-4">
+                <a href="/" class="footer-logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60">
+                      <style>
+                        .logo-text {
+                          font-family: 'Arial', sans-serif;
+                          font-weight: bold;
+                          fill: #E6E6E6;
+                          letter-spacing: 10px;
+                        }
+                      </style>
+                      <text x="10" y="45" font-size="48" class="logo-text">SYDA</text>
+                    </svg>
                 </a>
-                <p style="color: var(--text-secondary);">
+                <p class="footer-description">
                     Transforme dados de absenteísmo em insights estratégicos para sua empresa.
                 </p>
             </div>
-            
-            <div>
-                <h3 style="font-size: 1.2rem; margin-bottom: 16px;">Links Rápidos</h3>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li style="margin-bottom: 8px;"><a href="#features" style="text-decoration: none; color: var(--text-secondary);">Recursos</a></li>
-                    <li style="margin-bottom: 8px;"><a href="#how-it-works" style="text-decoration: none; color: var(--text-secondary);">Como Funciona</a></li>
-                    <li style="margin-bottom: 8px;"><a href="#pricing" style="text-decoration: none; color: var(--text-secondary);">Preços</a></li>
-                    <li style="margin-bottom: 8px;"><a href="{% url 'login' %}" style="text-decoration: none; color: var(--text-secondary);">Login</a></li>
-                    <li style="margin-bottom: 8px;"><a href="{% url 'signup' %}" style="text-decoration: none; color: var(--text-secondary);">Cadastro</a></li>
+            <div class="col-md-4">
+                <h4 class="footer-heading">Links Rápidos</h4>
+                <ul class="footer-links">
+                    <li><a href="#features" class="footer-link">Recursos</a></li>
+                    <li><a href="#how-it-works" class="footer-link">Como Funciona</a></li>
+                    <li><a href="#pricing" class="footer-link">Preços</a></li>
+                    <li><a href="{% url 'login' %}" class="footer-link">Login</a></li>
+                    <li><a href="{% url 'signup' %}" class="footer-link">Cadastro</a></li>
                 </ul>
             </div>
-            
-            <div>
-                <h3 style="font-size: 1.2rem; margin-bottom: 16px;">Contato</h3>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li style="margin-bottom: 8px; color: var(--text-secondary);"><i class="fas fa-envelope" style="width: 20px;"></i> contato@datasaas.com.br</li>
-                    <li style="margin-bottom: 8px; color: var(--text-secondary);"><i class="fas fa-phone" style="width: 20px;"></i> (11) 99999-9999</li>
+            <div class="col-md-4">
+                <h4 class="footer-heading">Contato</h4>
+                <ul class="footer-links">
+                    <li class="footer-contact-item"><i class="fas fa-envelope"></i> contato@syda.com.br</li>
+                    <li class="footer-contact-item"><i class="fas fa-phone"></i> (11) 99999-9999</li>
                 </ul>
             </div>
         </div>
-        
-        <div style="border-top: 1px solid var(--border-color); padding-top: 32px; text-align: center; color: var(--text-secondary);">
-            <p>© 2025 Data SAAS. Todos os direitos reservados.</p>
+        <div class="footer-copyright">
+            <p>© 2025 SYDA. Todos os direitos reservados.</p>
         </div>
     </div>
 </footer>
+
+<!-- JavaScript para a navegação responsiva e efeitos -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Menu toggle para mobile
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+    const navButtons = document.getElementById('navButtons');
+    
+    if (menuToggle) {
+      menuToggle.addEventListener('click', function() {
+        navLinks.classList.toggle('active');
+        navButtons.classList.toggle('active');
+      });
+    }
+    
+    // Navbar scroll effect
+    const navbar = document.getElementById('mainNav');
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+    
+    // Smooth scroll para links de âncora
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+        
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 80,
+            behavior: 'smooth'
+          });
+          
+          // Fechar menu mobile ao clicar
+          if (navLinks.classList.contains('active')) {
+            navLinks.classList.remove('active');
+            navButtons.classList.remove('active');
+          }
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}
