@@ -469,94 +469,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Estilo global para todos os gráficos
-    const globalLayout = {
-        font: {
-            family: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-            size: 12,
-            color: '#374151'
-        },
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        margin: {
-            l: 50,
-            r: 30,
-            t: 10,
-            b: 50,
-            pad: 0
-        },
-        xaxis: {
-            gridcolor: '#f3f4f6',
-            zerolinecolor: '#e5e7eb',
-            tickfont: {
-                size: 11
-            }
-        },
-        yaxis: {
-            gridcolor: '#f3f4f6',
-            zerolinecolor: '#e5e7eb',
-            tickfont: {
-                size: 11
-            }
-        },
-        legend: {
-            font: {
-                size: 11
-            },
-            orientation: 'h',
-            xanchor: 'center',
-            x: 0.5,
-            y: -0.15
-        },
-        colorway: ['#1A5F7A', '#57C4E5', '#2E7D32', '#F57C00', '#673AB7', 
-                   '#D81B60', '#0097A7', '#EF6C00']
-    };
-
-    // Função para aplicar estilo minimalista a um layout
-    function applyMinimalistStyle(layout) {
-        return _.merge({}, globalLayout, layout);
-    }
-
     // Renderizar gráfico de unidades
     {% if units_chart %}
-    const unitsChart = JSON.parse('{{ units_chart|escapejs }}');
-    unitsChart.layout = applyMinimalistStyle(unitsChart.layout);
-    Plotly.newPlot('units-chart', unitsChart.data, unitsChart.layout, config);
+    Plotly.newPlot('units-chart', {{ units_chart|safe }}.data, {{ units_chart|safe }}.layout, config);
     {% endif %}
     
     // Renderizar gráfico de departamentos
     {% if departments_chart %}
-    const deptsChart = JSON.parse('{{ departments_chart|escapejs }}');
-    deptsChart.layout = applyMinimalistStyle(deptsChart.layout);
-    Plotly.newPlot('departments-chart', deptsChart.data, deptsChart.layout, config);
+    Plotly.newPlot('departments-chart', {{ departments_chart|safe }}.data, {{ departments_chart|safe }}.layout, config);
     {% endif %}
     
     // Renderizar gráfico de CID
     {% if cid_chart %}
-    const cidChart = JSON.parse('{{ cid_chart|escapejs }}');
-    cidChart.layout = applyMinimalistStyle(cidChart.layout);
-    Plotly.newPlot('cid-chart', cidChart.data, cidChart.layout, config);
+    Plotly.newPlot('cid-chart', {{ cid_chart|safe }}.data, {{ cid_chart|safe }}.layout, config);
     {% endif %}
     
     // Renderizar gráfico mensal
     {% if month_chart %}
-    const monthChart = JSON.parse('{{ month_chart|escapejs }}');
-    monthChart.layout = applyMinimalistStyle(monthChart.layout);
-    Plotly.newPlot('month-chart', monthChart.data, monthChart.layout, config);
+    Plotly.newPlot('month-chart', {{ month_chart|safe }}.data, {{ month_chart|safe }}.layout, config);
     {% endif %}
     
     // Renderizar gráfico de gênero
     {% if gender_chart %}
-    const genderChart = JSON.parse('{{ gender_chart|escapejs }}');
-    genderChart.layout = applyMinimalistStyle(genderChart.layout);
-    Plotly.newPlot('gender-chart', genderChart.data, genderChart.layout, config);
+    Plotly.newPlot('gender-chart', {{ gender_chart|safe }}.data, {{ gender_chart|safe }}.layout, config);
     {% endif %}
     
     // Renderizar gráfico de custos
     {% if cost_chart %}
-    const costChart = JSON.parse('{{ cost_chart|escapejs }}');
-    costChart.layout = applyMinimalistStyle(costChart.layout);
-    Plotly.newPlot('cost-chart', costChart.data, costChart.layout, config);
+    Plotly.newPlot('cost-chart', {{ cost_chart|safe }}.data, {{ cost_chart|safe }}.layout, config);
     {% endif %}
     
     // Evento de redimensionamento para tornar os gráficos responsivos

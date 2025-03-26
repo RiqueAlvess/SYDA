@@ -33,7 +33,15 @@ INSTALLED_APPS = [
     "clients",
     "api_config",
     "employees",  
+
+    # dash
+    'django_plotly_dash.apps.DjangoPlotlyDashConfig',
 ]
+
+PLOTLY_DASH = {
+    "serve_locally": True,
+}
+
 
 
 MIDDLEWARE = [
@@ -44,6 +52,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'django_plotly_dash.middleware.BaseMiddleware',
 ]
 
 ROOT_URLCONF = "data_saas.urls"
@@ -158,7 +167,7 @@ SIMPLE_JWT = {
 # Configurações de segurança
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = "DENY"
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # Em produção, ative estas configurações
 if not DEBUG:

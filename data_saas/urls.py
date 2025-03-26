@@ -36,7 +36,7 @@ urlpatterns = [
     path("employees/", include("employees.urls")),
 ]
 
-# Configura o admin para usar o site atual
-admin.site.site_header = "SAAS de Dados - Administração"
-admin.site.site_title = "Administração SAAS"
-admin.site.index_title = "Bem-vindo ao Portal de Administração"
+
+admin.site.site_header = "SYDA - Administração"
+admin.site.site_title = "Administração SYDA"
+admin.site.index_title = "Bem-vindo ao SYDA"
