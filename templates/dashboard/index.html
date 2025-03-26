@@ -5,6 +5,28 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+    /* Estilos adicionais para os gráficos Plotly */
+    .chart-container {
+        position: relative;
+        height: 350px;
+        width: 100%;
+        overflow: hidden;
+    }
+    
+    /* Melhorar aparência do Plotly em tema claro */
+    .js-plotly-plot .plotly .modebar {
+        top: 5px;
+        right: 5px;
+    }
+    
+    /* Ajustes responsivos */
+    @media (max-width: 768px) {
+        .chart-container {
+            height: 300px;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -14,75 +36,44 @@
         <p>Análise completa de absenteísmo corporativo</p>
     </div>
 
-    <!-- Painel de Filtros -->
-    <section class="filter-panel">
-        <div class="panel-header">
-            <h2>Filtros</h2>
-            <button id="reset-filters" class="btn btn-outline">Limpar Filtros</button>
-        </div>
-        
-        <div class="filter-grid">
-            <div class="filter-item">
-                <label for="start-date">Data Início</label>
-                <input type="date" id="start-date" class="form-input">
-            </div>
-            
-            <div class="filter-item">
-                <label for="end-date">Data Fim</label>
-                <input type="date" id="end-date" class="form-input">
-            </div>
-            
-            <div class="filter-item">
-                <label for="unit-filter">Unidade</label>
-                <select id="unit-filter" class="form-select">
-                    <option value="">Todas as Unidades</option>
-                </select>
-            </div>
-            
-            <div class="filter-item">
-                <label for="department-filter">Setor</label>
-                <select id="department-filter" class="form-select">
-                    <option value="">Todos os Setores</option>
-                </select>
-            </div>
-            
-            <div class="filter-item">
-                <label for="situation-filter">Situação</label>
-                <select id="situation-filter" class="form-select">
-                    <option value="">Todas as Situações</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="filter-summary">
-            <p id="active-filters">Filtros aplicados: <span class="text-muted">Nenhum filtro aplicado</span></p>
-            <p id="filtered-records">Exibindo 0 de 0 atestados</p>
-        </div>
-    </section>
-
+    {% if no_client %}
+    <div class="alert alert-warning">
+        <h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> Nenhum cliente encontrado</h4>
+        <p>Não foi possível carregar os dados de dashboard porque não há clientes cadastrados no sistema.</p>
+        <hr>
+        <p class="mb-0">Por favor, contate o administrador do sistema para cadastrar um cliente.</p>
+    </div>
+    {% elif no_data %}
+    <div class="alert alert-info">
+        <h4 class="alert-heading"><i class="fas fa-info-circle me-2"></i> Sem dados disponíveis</h4>
+        <p>Não existem dados suficientes para gerar o dashboard. É necessário ter funcionários e registros de absenteísmo.</p>
+        <hr>
+        <p class="mb-0">Configure as APIs e sincronize os dados na seção <a href="{% url 'api_config' %}" class="alert-link">Configurações API</a>.</p>
+    </div>
+    {% else %}
     <!-- Métricas Principais -->
     <section class="metrics-grid">
         <div class="metric-card">
             <h2>Taxa de Absenteísmo</h2>
-            <p id="absenteeism-rate" class="metric-value text-blue">0.00%</p>
+            <p class="metric-value text-blue">{{ absenteeism_rate }}%</p>
             <p class="metric-desc">Baseado na média de horas trabalhadas no Brasil</p>
         </div>
         
         <div class="metric-card">
             <h2>Custo Total</h2>
-            <p id="total-cost" class="metric-value text-green">R$ 0,00</p>
+            <p class="metric-value text-green">R$ {{ absenteeism_cost|floatformat:2 }}</p>
             <p class="metric-desc">Baseado no salário mínimo de R$ 1.412,00</p>
         </div>
         
         <div class="metric-card">
             <h2>Dias de Afastamento</h2>
-            <p id="total-days-off" class="metric-value text-orange">0</p>
+            <p class="metric-value text-orange">{{ total_days_off }}</p>
             <p class="metric-desc">Total de dias perdidos</p>
         </div>
         
         <div class="metric-card">
             <h2>Funcionários / Atestados</h2>
-            <p id="employees-vs-absences" class="metric-value text-purple">0 / 0</p>
+            <p class="metric-value text-purple">{{ total_employees }} / {{ total_absences }}</p>
             <p class="metric-desc">Total de funcionários e atestados</p>
         </div>
     </section>
@@ -92,14 +83,28 @@
         <section class="chart-card">
             <h2>Top 10 Unidades com Maior Absenteísmo</h2>
             <div class="chart-container">
-                <canvas id="chart-units"></canvas>
+                {% if units_chart %}
+                <div id="units-chart"></div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-chart-bar fa-4x mb-3"></i>
+                    <p>Dados insuficientes para gerar este gráfico</p>
+                </div>
+                {% endif %}
             </div>
         </section>
         
         <section class="chart-card">
             <h2>Absenteísmo por Setor</h2>
             <div class="chart-container">
-                <canvas id="chart-departments"></canvas>
+                {% if departments_chart %}
+                <div id="departments-chart"></div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-chart-bar fa-4x mb-3"></i>
+                    <p>Dados insuficientes para gerar este gráfico</p>
+                </div>
+                {% endif %}
             </div>
         </section>
     </div>
@@ -109,14 +114,28 @@
         <section class="chart-card">
             <h2>Absenteísmo por Grupo Patológico</h2>
             <div class="chart-container">
-                <canvas id="chart-cid"></canvas>
+                {% if cid_chart %}
+                <div id="cid-chart"></div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-chart-bar fa-4x mb-3"></i>
+                    <p>Dados insuficientes para gerar este gráfico</p>
+                </div>
+                {% endif %}
             </div>
         </section>
         
         <section class="chart-card">
             <h2>Evolução do Absenteísmo por Mês</h2>
             <div class="chart-container">
-                <canvas id="chart-month"></canvas>
+                {% if month_chart %}
+                <div id="month-chart"></div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-chart-line fa-4x mb-3"></i>
+                    <p>Dados insuficientes para gerar este gráfico</p>
+                </div>
+                {% endif %}
             </div>
         </section>
     </div>
@@ -127,25 +146,51 @@
             <h2>Absenteísmo por Gênero</h2>
             <div class="gender-grid">
                 <div class="chart-container">
-                    <canvas id="chart-gender"></canvas>
+                    {% if gender_chart %}
+                    <div id="gender-chart"></div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-chart-pie fa-4x mb-3"></i>
+                        <p>Dados insuficientes para gerar este gráfico</p>
+                    </div>
+                    {% endif %}
                 </div>
                 
                 <div class="gender-stats">
                     <div class="stat-section">
-                        <h3>Distribuição de Atestados</h3>
-                        <div id="gender-distribution" class="gender-cards"></div>
-                    </div>
-                    
-                    <div class="stat-section">
-                        <h3>Dias Afastados</h3>
-                        <div id="gender-days-off" class="gender-cards"></div>
+                        <h3>Principais Grupos Patológicos por Gênero</h3>
+                        
+                        {% if gender_cid_data %}
+                        <div class="gender-cid-tables">
+                            {% for gender, cids in gender_cid_data.items %}
+                            <div class="gender-cid-table">
+                                <h4 style="color: {% cycle '#8E24AA' '#D81B60' '#1E88E5' %}">{{ gender }}</h4>
+                                <table class="cid-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Grupo Patológico (CID)</th>
+                                            <th>Qtde</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for cid in cids %}
+                                        <tr>
+                                            <td>{{ cid.grupo_patologico|truncatechars:25 }}</td>
+                                            <td>{{ cid.count }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-3 text-muted">
+                            <p>Dados insuficientes para análise por gênero</p>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-            </div>
-            
-            <div class="gender-cid-section">
-                <h3>Principais Grupos Patológicos por Gênero</h3>
-                <div id="gender-cid-tables" class="gender-cid-tables"></div>
             </div>
         </section>
         
@@ -165,11 +210,11 @@
                         </div>
                         <div class="cost-item">
                             <p class="cost-label">Valor Hora Base:</p>
-                            <p id="hourly-rate" class="cost-value">R$ 8,02</p>
+                            <p class="cost-value">R$ {{ hourly_rate|floatformat:2 }}</p>
                         </div>
                         <div class="cost-item">
                             <p class="cost-label">Total Horas Afastadas:</p>
-                            <p id="total-hours-off" class="cost-value">0 horas</p>
+                            <p class="cost-value">{{ total_hours_off }} horas</p>
                         </div>
                     </div>
                 </div>
@@ -177,15 +222,22 @@
                 <div class="cost-section">
                     <h3>Custo por Setor</h3>
                     <div class="chart-container">
-                        <canvas id="chart-cost-sector"></canvas>
+                        {% if cost_chart %}
+                        <div id="cost-chart"></div>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-chart-bar fa-4x mb-3"></i>
+                            <p>Dados insuficientes para gerar este gráfico</p>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 
                 <div class="cost-section">
                     <h3>Custo Total do Absenteísmo</h3>
                     <div class="total-cost-box">
-                        <p id="total-cost-value" class="total-cost-value">R$ 0,00</p>
-                        <p id="total-cost-percent" class="cost-percent">Representa 0% da folha salarial estimada</p>
+                        <p class="total-cost-value">R$ {{ absenteeism_cost|floatformat:2 }}</p>
+                        <p class="cost-percent">Representa aproximadamente {{ absenteeism_rate|floatformat:2 }}% de horas trabalhadas</p>
                     </div>
                 </div>
                 
@@ -194,32 +246,79 @@
                     <div class="savings-grid">
                         <div class="savings-card">
                             <h4>Economia com redução de 10%</h4>
-                            <p id="savings-10" class="savings-value">R$ 0,00</p>
+                            <p class="savings-value">R$ {{ savings_10|floatformat:2 }}</p>
                         </div>
                         <div class="savings-card">
                             <h4>Economia com redução de 20%</h4>
-                            <p id="savings-20" class="savings-value">R$ 0,00</p>
+                            <p class="savings-value">R$ {{ savings_20|floatformat:2 }}</p>
                         </div>
                         <div class="savings-card">
                             <h4>Economia com redução de 30%</h4>
-                            <p id="savings-30" class="savings-value">R$ 0,00</p>
+                            <p class="savings-value">R$ {{ savings_30|floatformat:2 }}</p>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
     </div>
-
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay">
-        <div class="loading-spinner"></div>
-        <p>Carregando dados...</p>
-    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-<script src="{% static 'js/dashboard.js' %}"></script>
+<!-- Carregar Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<!-- Renderizar os gráficos -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Renderizar gráfico de unidades
+    {% if units_chart %}
+    const unitsChart = JSON.parse('{{ units_chart|escapejs }}');
+    Plotly.newPlot('units-chart', unitsChart.data, unitsChart.layout, {responsive: true});
+    {% endif %}
+    
+    // Renderizar gráfico de departamentos
+    {% if departments_chart %}
+    const deptsChart = JSON.parse('{{ departments_chart|escapejs }}');
+    Plotly.newPlot('departments-chart', deptsChart.data, deptsChart.layout, {responsive: true});
+    {% endif %}
+    
+    // Renderizar gráfico de CID
+    {% if cid_chart %}
+    const cidChart = JSON.parse('{{ cid_chart|escapejs }}');
+    Plotly.newPlot('cid-chart', cidChart.data, cidChart.layout, {responsive: true});
+    {% endif %}
+    
+    // Renderizar gráfico mensal
+    {% if month_chart %}
+    const monthChart = JSON.parse('{{ month_chart|escapejs }}');
+    Plotly.newPlot('month-chart', monthChart.data, monthChart.layout, {responsive: true});
+    {% endif %}
+    
+    // Renderizar gráfico de gênero
+    {% if gender_chart %}
+    const genderChart = JSON.parse('{{ gender_chart|escapejs }}');
+    Plotly.newPlot('gender-chart', genderChart.data, genderChart.layout, {responsive: true});
+    {% endif %}
+    
+    // Renderizar gráfico de custos
+    {% if cost_chart %}
+    const costChart = JSON.parse('{{ cost_chart|escapejs }}');
+    Plotly.newPlot('cost-chart', costChart.data, costChart.layout, {responsive: true});
+    {% endif %}
+    
+    // Evento de redimensionamento para tornar os gráficos responsivos
+    window.addEventListener('resize', function() {
+        // Redimensionar todos os gráficos
+        const charts = document.querySelectorAll('[id$="-chart"]');
+        charts.forEach(chart => {
+            Plotly.relayout(chart.id, {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+        });
+    });
+});
+</script>
 {% endblock %}
