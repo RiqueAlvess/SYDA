@@ -6,7 +6,6 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <style>
-    /* Estilos adicionais para os gráficos Plotly */
     .chart-container {
         position: relative;
         height: 350px;
@@ -16,7 +15,6 @@
         background-color: white;
     }
     
-    /* Estilos para os filtros */
     .filters-panel {
         background-color: white;
         border-radius: 0.5rem;
@@ -33,10 +31,6 @@
         margin-bottom: 1rem;
         display: flex;
         align-items: center;
-    }
-    
-    .filters-title i {
-        margin-right: 0.5rem;
     }
     
     .filter-input {
@@ -101,13 +95,6 @@
         margin-right: 0.5rem;
     }
     
-    /* Melhorar aparência do Plotly em tema claro */
-    .js-plotly-plot .plotly .modebar {
-        top: 5px;
-        right: 5px;
-    }
-    
-    /* Loading overlay */
     .loading-overlay {
         position: fixed;
         top: 0;
@@ -115,7 +102,7 @@
         width: 100%;
         height: 100%;
         background-color: rgba(0, 0, 0, 0.5);
-        display: none; /* Esconder por padrão */
+        display: none;
         justify-content: center;
         align-items: center;
         flex-direction: column;
@@ -123,7 +110,6 @@
         color: white;
     }
     
-    /* Ajustes responsivos */
     @media (max-width: 768px) {
         .chart-container {
             height: 300px;
@@ -243,28 +229,14 @@
         <section class="chart-card">
             <h2>Top 10 Unidades com Maior Absenteísmo</h2>
             <div class="chart-container">
-                {% if units_chart %}
                 <div id="units-chart"></div>
-                {% else %}
-                <div class="text-center py-5 text-muted">
-                    <i class="fas fa-chart-bar fa-4x mb-3"></i>
-                    <p>Dados insuficientes para gerar este gráfico</p>
-                </div>
-                {% endif %}
             </div>
         </section>
         
         <section class="chart-card">
             <h2>Absenteísmo por Setor</h2>
             <div class="chart-container">
-                {% if departments_chart %}
                 <div id="departments-chart"></div>
-                {% else %}
-                <div class="text-center py-5 text-muted">
-                    <i class="fas fa-chart-bar fa-4x mb-3"></i>
-                    <p>Dados insuficientes para gerar este gráfico</p>
-                </div>
-                {% endif %}
             </div>
         </section>
     </div>
@@ -274,28 +246,14 @@
         <section class="chart-card">
             <h2>Absenteísmo por Grupo Patológico</h2>
             <div class="chart-container">
-                {% if cid_chart %}
                 <div id="cid-chart"></div>
-                {% else %}
-                <div class="text-center py-5 text-muted">
-                    <i class="fas fa-chart-bar fa-4x mb-3"></i>
-                    <p>Dados insuficientes para gerar este gráfico</p>
-                </div>
-                {% endif %}
             </div>
         </section>
         
         <section class="chart-card">
             <h2>Evolução do Absenteísmo por Mês</h2>
             <div class="chart-container">
-                {% if month_chart %}
                 <div id="month-chart"></div>
-                {% else %}
-                <div class="text-center py-5 text-muted">
-                    <i class="fas fa-chart-line fa-4x mb-3"></i>
-                    <p>Dados insuficientes para gerar este gráfico</p>
-                </div>
-                {% endif %}
             </div>
         </section>
     </div>
@@ -306,14 +264,7 @@
             <h2>Absenteísmo por Gênero</h2>
             <div class="gender-grid">
                 <div class="chart-container">
-                    {% if gender_chart %}
                     <div id="gender-chart"></div>
-                    {% else %}
-                    <div class="text-center py-5 text-muted">
-                        <i class="fas fa-chart-pie fa-4x mb-3"></i>
-                        <p>Dados insuficientes para gerar este gráfico</p>
-                    </div>
-                    {% endif %}
                 </div>
                 
                 <div class="gender-stats">
@@ -382,14 +333,7 @@
                 <div class="cost-section">
                     <h3>Custo por Setor</h3>
                     <div class="chart-container">
-                        {% if cost_chart %}
                         <div id="cost-chart"></div>
-                        {% else %}
-                        <div class="text-center py-5 text-muted">
-                            <i class="fas fa-chart-bar fa-4x mb-3"></i>
-                            <p>Dados insuficientes para gerar este gráfico</p>
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
                 
@@ -434,267 +378,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Carregar Plotly.js e Lodash -->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
-
-<!-- Renderizar os gráficos -->
-<script>
-// Esconder imediatamente o overlay quando o script começar a executar
-(function() {
-    var loadingOverlay = document.getElementById('loading-overlay');
-    if (loadingOverlay) {
-        loadingOverlay.style.display = 'none';
-    }
-})();
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Esconder novamente o overlay (garantia dupla)
-    var loadingOverlay = document.getElementById('loading-overlay');
-    if (loadingOverlay) {
-        loadingOverlay.style.display = 'none';
-    }
-    
-    // Configurações globais do Plotly para estilo minimalista tipo shadcn
-    const config = {
-        displaylogo: false, // Remove o logo do Plotly
-        responsive: true,
-        modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d'],
-        toImageButtonOptions: {
-            format: 'png',
-            filename: 'syda_chart',
-            height: 500,
-            width: 700,
-            scale: 2
-        }
-    };
-
-    // Renderizar gráfico de unidades
-    {% if units_chart %}
-    Plotly.newPlot('units-chart', {{ units_chart|safe }}.data, {{ units_chart|safe }}.layout, config);
-    {% endif %}
-    
-    // Renderizar gráfico de departamentos
-    {% if departments_chart %}
-    Plotly.newPlot('departments-chart', {{ departments_chart|safe }}.data, {{ departments_chart|safe }}.layout, config);
-    {% endif %}
-    
-    // Renderizar gráfico de CID
-    {% if cid_chart %}
-    Plotly.newPlot('cid-chart', {{ cid_chart|safe }}.data, {{ cid_chart|safe }}.layout, config);
-    {% endif %}
-    
-    // Renderizar gráfico mensal
-    {% if month_chart %}
-    Plotly.newPlot('month-chart', {{ month_chart|safe }}.data, {{ month_chart|safe }}.layout, config);
-    {% endif %}
-    
-    // Renderizar gráfico de gênero
-    {% if gender_chart %}
-    Plotly.newPlot('gender-chart', {{ gender_chart|safe }}.data, {{ gender_chart|safe }}.layout, config);
-    {% endif %}
-    
-    // Renderizar gráfico de custos
-    {% if cost_chart %}
-    Plotly.newPlot('cost-chart', {{ cost_chart|safe }}.data, {{ cost_chart|safe }}.layout, config);
-    {% endif %}
-    
-    // Evento de redimensionamento para tornar os gráficos responsivos
-    window.addEventListener('resize', function() {
-        // Redimensionar todos os gráficos
-        const charts = document.querySelectorAll('[id$="-chart"]');
-        charts.forEach(chart => {
-            Plotly.relayout(chart.id, {
-                'xaxis.autorange': true,
-                'yaxis.autorange': true
-            });
-        });
-    });
-
-    // Carregar os dados para os filtros
-    function loadFilterOptions() {
-        // Se tivéssemos dados disponíveis, preencheríamos os filtros aqui
-        fetch('/employees/api/dashboard/employees/')
-            .then(response => response.json())
-            .then(data => {
-                // Processo de dados dos funcionários para extrair as situações
-                const situations = [...new Set(data.map(emp => emp.situacao).filter(Boolean))];
-                const situationSelect = document.getElementById('situation-filter');
-                
-                // Limpa opções existentes
-                situationSelect.innerHTML = '<option value="">Todas as Situações</option>';
-                
-                // Adiciona cada situação como uma opção
-                situations.forEach(situation => {
-                    const option = document.createElement('option');
-                    option.value = situation;
-                    option.textContent = situation;
-                    situationSelect.appendChild(option);
-                });
-            })
-            .catch(error => console.error('Erro ao carregar dados dos funcionários:', error));
-
-        fetch('/employees/api/dashboard/absences/')
-            .then(response => response.json())
-            .then(data => {
-                // Extrair unidades e setores
-                const units = [...new Set(data.map(abs => abs.unidade).filter(Boolean))];
-                const departments = [...new Set(data.map(abs => abs.setor).filter(Boolean))];
-                
-                // Preencher select de unidades
-                const unitSelect = document.getElementById('unit-filter');
-                unitSelect.innerHTML = '<option value="">Todas as Unidades</option>';
-                units.forEach(unit => {
-                    const option = document.createElement('option');
-                    option.value = unit;
-                    option.textContent = unit;
-                    unitSelect.appendChild(option);
-                });
-                
-                // Preencher select de setores
-                const deptSelect = document.getElementById('department-filter');
-                deptSelect.innerHTML = '<option value="">Todos os Setores</option>';
-                departments.forEach(dept => {
-                    const option = document.createElement('option');
-                    option.value = dept;
-                    option.textContent = dept;
-                    deptSelect.appendChild(option);
-                });
-                
-                // Definir datas mínima e máxima
-                if (data.length > 0) {
-                    const dates = data.map(item => item.dt_inicio_atestado).filter(Boolean).map(d => new Date(d));
-                    if (dates.length > 0) {
-                        const minDate = new Date(Math.min(...dates));
-                        const maxDate = new Date(Math.max(...dates));
-                        
-                        document.getElementById('start-date').value = formatDateForInput(minDate);
-                        document.getElementById('end-date').value = formatDateForInput(maxDate);
-                    }
-                }
-            })
-            .catch(error => console.error('Erro ao carregar dados de absenteísmo:', error));
-    }
-
-    // Função para formatar data para input (YYYY-MM-DD)
-    function formatDateForInput(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-    // Função para formatar data para exibição (DD/MM/YYYY)
-    function formatDateForDisplay(dateStr) {
-        if (!dateStr) return '';
-        const [year, month, day] = dateStr.split('-');
-        return `${day}/${month}/${year}`;
-    }
-
-    // Modificado para usar o form nativo do HTML
-    // Manipulador para o botão de limpar filtros
-    document.getElementById('reset-filters').addEventListener('click', function() {
-        document.getElementById('filter-form').reset();
-        loadFilterOptions(); // Recarregar as opções padrão
-        
-        // Atualizar URL sem parâmetros
-        history.pushState({}, '', window.location.pathname);
-        
-        // Mostrar overlay ao recarregar
-        if (loadingOverlay) {
-            loadingOverlay.style.display = 'flex';
-        }
-        
-        // Recarregar página
-        window.location.href = window.location.pathname;
-    });
-
-    // Mostrar overlay quando o formulário for enviado
-    document.getElementById('filter-form').addEventListener('submit', function() {
-        if (loadingOverlay) {
-            loadingOverlay.style.display = 'flex';
-        }
-    });
-
-    // Atualizar a exibição de filtros ativos
-    function updateActiveFiltersDisplay(filters) {
-        const activeFiltersEl = document.getElementById('active-filters');
-        let filterText = '';
-        let filtersApplied = false;
-        
-        if (filters.start_date && filters.end_date) {
-            filterText += `<span class="badge bg-light text-dark me-2 mb-1">Período: ${formatDateForDisplay(filters.start_date)} a ${formatDateForDisplay(filters.end_date)}</span>`;
-            filtersApplied = true;
-        }
-        
-        if (filters.unit) {
-            filterText += `<span class="badge bg-light text-dark me-2 mb-1">Unidade: ${filters.unit}</span>`;
-            filtersApplied = true;
-        }
-        
-        if (filters.department) {
-            filterText += `<span class="badge bg-light text-dark me-2 mb-1">Setor: ${filters.department}</span>`;
-            filtersApplied = true;
-        }
-        
-        if (filters.situation) {
-            filterText += `<span class="badge bg-light text-dark me-2 mb-1">Situação: ${filters.situation}</span>`;
-            filtersApplied = true;
-        }
-        
-        if (filters.search) {
-            filterText += `<span class="badge bg-light text-dark me-2 mb-1">Busca: ${filters.search}</span>`;
-            filtersApplied = true;
-        }
-        
-        activeFiltersEl.innerHTML = filtersApplied 
-            ? `<strong>Filtros aplicados:</strong> ${filterText}`
-            : '<span class="text-muted">Nenhum filtro aplicado</span>';
-            
-        document.getElementById('filtered-records').innerHTML = 
-            filtersApplied ? 'Os dados exibidos estão filtrados. Para ver todos os dados, clique em "Limpar Filtros".' : '';
-    }
-
-    // Carregar opções de filtros ao iniciar
-    loadFilterOptions();
-    
-    // Verificar se há parâmetros na URL e aplicar como filtros iniciais
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.toString()) {
-        // Para cada parâmetro na URL, definir o valor no campo de filtro correspondente
-        urlParams.forEach((value, key) => {
-            const element = document.getElementById(`${key.replace('_', '-')}-filter`);
-            if (element) {
-                element.value = value;
-            }
-        });
-        
-        // Se houver dates na URL
-        if (urlParams.has('start_date')) {
-            document.getElementById('start-date').value = urlParams.get('start_date');
-        }
-        if (urlParams.has('end_date')) {
-            document.getElementById('end-date').value = urlParams.get('end_date');
-        }
-        
-        // Atualizar a exibição dos filtros ativos
-        updateActiveFiltersDisplay({
-            start_date: urlParams.get('start_date'),
-            end_date: urlParams.get('end_date'),
-            unit: urlParams.get('unit'),
-            department: urlParams.get('department'),
-            situation: urlParams.get('situation'),
-            search: urlParams.get('search')
-        });
-    }
-});
-
-// Para garantir caso a página seja carregada com overlay visível
-window.onload = function() {
-    var loadingOverlay = document.getElementById('loading-overlay');
-    if (loadingOverlay) {
-        loadingOverlay.style.display = 'none';
-    }
-};
-</script>
+<script src="https://cdn.plot.ly/plotly-2.27.1.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}
