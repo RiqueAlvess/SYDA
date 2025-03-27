@@ -1,5 +1,7 @@
-// static/js/dashboard.js
 document.addEventListener('DOMContentLoaded', function() {
+    // Se CHART_CONFIG não estiver definido globalmente, define um valor padrão
+    const chartConfig = (typeof window.CHART_CONFIG !== 'undefined') ? window.CHART_CONFIG : { displaylogo: false };
+
     // Configurações
     const CONFIG = {
         AVG_WORK_HOURS_PER_MONTH: 176,
@@ -45,7 +47,6 @@ document.addEventListener('DOMContentLoaded', function() {
             situation: document.getElementById('situation-filter')
         },
         charts: {
-            // CORRIGIDO: Atualizado para corresponder aos IDs no HTML
             units: document.getElementById('units-chart'),
             departments: document.getElementById('departments-chart'),
             cid: document.getElementById('cid-chart'),
@@ -55,12 +56,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Main initialization
+    // Inicialização principal
     async function init() {
         try {
-            // Debug para encontrar problemas com elementos DOM
             console.log("DOM chart elements:", DOM.charts);
-            
             showLoading();
             await loadData();
             applyInitialFilters();
@@ -68,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateKPIs();
             renderCharts();
             setupEventListeners();
+            setupResizeListener();
         } catch (error) {
             handleError(error);
         } finally {
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Data loading
+    // Carregamento dos dados via API
     async function loadData() {
         const [employeesRes, absencesRes] = await Promise.all([
             fetch('/employees/api/dashboard/employees/'),
@@ -87,7 +87,6 @@ document.addEventListener('DOMContentLoaded', function() {
         state.rawEmployees = await employeesRes.json();
         state.rawAbsences = await absencesRes.json();
         
-        // Debug para verificar se os dados foram carregados
         console.log("Loaded data:", {
             employees: state.rawEmployees.length,
             absences: state.rawAbsences.length
@@ -98,16 +97,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Filter logic
+    // Aplicação dos filtros iniciais (datas)
     function applyInitialFilters() {
-        // Se start_date não estiver definido, use 3 meses atrás
         if (!DOM.filters.startDate.value) {
             const threeMonthsAgo = new Date();
             threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
             DOM.filters.startDate.value = threeMonthsAgo.toISOString().slice(0, 10);
         }
         
-        // Se end_date não estiver definido, use hoje
         if (!DOM.filters.endDate.value) {
             const today = new Date();
             DOM.filters.endDate.value = today.toISOString().slice(0, 10);
@@ -115,17 +112,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         state.filteredAbsences = state.rawAbsences.filter(absence => {
             if (!absence.dt_inicio_atestado) return false;
-            
             const date = new Date(absence.dt_inicio_atestado);
-            return date >= new Date(DOM.filters.startDate.value) && 
+            return date >= new Date(DOM.filters.startDate.value) &&
                    date <= new Date(DOM.filters.endDate.value);
         });
         
-        // Debug para verificar filtragem
         console.log("Filtered absences:", state.filteredAbsences.length);
     }
 
-    // Metrics calculation
+    // Cálculo das métricas
     function calculateMetrics() {
         const totalEmployees = state.rawEmployees.length;
         const totalAbsences = state.filteredAbsences.length;
@@ -145,11 +140,10 @@ document.addEventListener('DOMContentLoaded', function() {
             costPercentage: (cost / (CONFIG.MIN_WAGE_BRAZIL * totalEmployees)) * 100
         };
         
-        // Debug para verificar métricas
         console.log("Calculated metrics:", state.metrics);
     }
 
-    // Charts data preparation
+    // Preparação dos dados para os gráficos
     function prepareChartData() {
         state.charts = {
             units: groupData('unidade', 'Dias', 'Atestados'),
@@ -160,7 +154,6 @@ document.addEventListener('DOMContentLoaded', function() {
             costSector: groupCostData()
         };
         
-        // Debug para verificar dados dos gráficos
         console.log("Chart data prepared:", {
             units: state.charts.units.length,
             departments: state.charts.departments.length,
@@ -171,6 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Função genérica para agrupar dados por campo
     function groupData(field, primaryLabel, secondaryLabel) {
         const groups = {};
         state.filteredAbsences.forEach(a => {
@@ -190,6 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }));
     }
 
+    // Agrupamento dos dados mensais
     function groupMonthlyData() {
         const months = {};
         state.filteredAbsences.forEach(a => {
@@ -209,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }));
     }
 
+    // Agrupamento dos dados por gênero (para gráfico de pizza)
     function groupGenderData() {
         const genderMap = { '1': 'Masculino', '2': 'Feminino' };
         const counts = state.filteredAbsences.reduce((acc, a) => {
@@ -223,11 +219,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }));
     }
 
+    // Agrupamento dos dados de custo por setor
     function groupCostData() {
-        // Em vez de depender de state.charts.departments que ainda não existe
-        // Vamos processar os dados diretamente dos dados filtrados
         const sectorCosts = {};
-        
         state.filteredAbsences.forEach(a => {
             const sector = a.setor || 'Não informado';
             sectorCosts[sector] = sectorCosts[sector] || { days: 0 };
@@ -242,8 +236,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 Custo: (data.days * 8) * CONFIG.HOURLY_RATE
             }));
     }
-    
-    // Charts rendering
+
+    // Renderização dos gráficos
     function renderCharts() {
         prepareChartData();
         renderBarChart('units', 'Unidades', ['Dias', 'Atestados']);
@@ -279,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
             title: `Top 10 ${title}`,
             barmode: 'group',
             height: 400
-        });
+        }, chartConfig);
         
         console.log(`Rendered bar chart: ${chartKey}`);
     }
@@ -314,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
         Plotly.newPlot(chartElement, [trace1, trace2], {
             title: 'Evolução Mensal',
             height: 400
-        });
+        }, chartConfig);
         
         console.log("Rendered line chart");
     }
@@ -341,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }], {
             title: 'Distribuição por Gênero',
             height: 400
-        });
+        }, chartConfig);
         
         console.log("Rendered pie chart");
     }
@@ -368,17 +362,18 @@ document.addEventListener('DOMContentLoaded', function() {
             title: 'Custo por Setor',
             yaxis: { tickprefix: 'R$ ' },
             height: 400
-        });
+        }, chartConfig);
         
         console.log("Rendered cost chart");
     }
 
-    // Helpers
+    // Helper para formatar mês
     function formatMonth(monthString) {
         const [year, month] = monthString.split('-');
         return `${month}/${year}`;
     }
 
+    // Helper para formatar moeda
     function formatCurrency(value) {
         return new Intl.NumberFormat('pt-BR', { 
             style: 'currency', 
@@ -386,8 +381,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }).format(value);
     }
 
+    // Atualização dos KPIs na interface
     function updateKPIs() {
-        // Verificar se os elementos existem antes de atualizá-los
         if (DOM.kpis.rate) DOM.kpis.rate.textContent = `${state.metrics.rate.toFixed(2)}%`;
         if (DOM.kpis.totalCost) DOM.kpis.totalCost.textContent = formatCurrency(state.metrics.cost);
         if (DOM.kpis.daysOff) DOM.kpis.daysOff.textContent = state.metrics.totalDays;
@@ -405,9 +400,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("KPIs updated");
     }
 
-    // Event handling
+    // Configuração dos listeners de eventos para filtros
     function setupEventListeners() {
-        // Verificar se os elementos de filtro existem antes de adicionar event listeners
         if (DOM.filters.startDate) DOM.filters.startDate.addEventListener('change', handleFilterChange);
         if (DOM.filters.endDate) DOM.filters.endDate.addEventListener('change', handleFilterChange);
         if (DOM.filters.unit) DOM.filters.unit.addEventListener('change', handleFilterChange);
@@ -431,7 +425,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // UI Utilities
+    // Listener para redimensionamento (responsividade dos gráficos)
+    function setupResizeListener() {
+        window.addEventListener('resize', function() {
+            Object.values(DOM.charts).forEach(chart => {
+                if (chart) Plotly.Plots.resize(chart);
+            });
+        });
+    }
+
+    // Utilitários de interface
     function showLoading() {
         if (DOM.loading) DOM.loading.style.display = 'flex';
     }
@@ -445,6 +448,6 @@ document.addEventListener('DOMContentLoaded', function() {
         alert(`Erro crítico: ${error.message}`);
     }
 
-    // Start
+    // Inicia a aplicação
     init();
 });

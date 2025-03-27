@@ -267,48 +267,9 @@
         <section class="chart-card">
             <h2>Absenteísmo por Gênero</h2>
             
-            <!-- Full-width chart container for the pie chart -->
+            <!-- Gráfico de pizza para o absenteísmo por gênero -->
             <div class="chart-container mb-4">
                 <div id="gender-chart" data-chart-type="pie"></div>
-            </div>
-            
-            <!-- Gender stats section below the chart -->
-            <div class="gender-stats mt-4">
-                <h3 class="text-center border-bottom pb-2 mb-3">Principais Grupos Patológicos por Gênero</h3>
-                
-                {% if gender_cid_data and gender_cid_data.items|length > 0 %}
-                    <div class="row gender-cid-tables">
-                        {% for gender, cids in gender_cid_data.items %}
-                            <div class="col-md-6 mb-3">
-                                <div class="gender-cid-table">
-                                    <h4 class="text-center mb-2" style="color: {% cycle '#8E24AA' '#D81B60' '#1E88E5' %}">{{ gender }}</h4>
-                                    <table class="cid-table table table-sm table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>Grupo Patológico (CID)</th>
-                                                <th class="text-center">Qtde</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for cid in cids %}
-                                            <tr>
-                                                <td>{{ cid.grupo_patologico|truncatechars:25 }}</td>
-                                                <td class="text-center">{{ cid.count }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-info-circle fa-2x text-muted mb-3"></i>
-                        <p class="text-muted">Dados insuficientes para análise detalhada por gênero</p>
-                        <p class="small text-muted">Sincronize mais dados para ver essa análise</p>
-                    </div>
-                {% endif %}
             </div>
         </section>
         
@@ -399,9 +360,11 @@
 {% block extra_js %}
 <script src="https://cdn.plot.ly/plotly-2.27.1.min.js"></script>
 <script>
-    // Set default dates if not provided
+    // Variável global para configuração dos gráficos (remover "Produced with Plotly")
+    var CHART_CONFIG = {{ chart_config|safe }};
+    
     document.addEventListener('DOMContentLoaded', function() {
-        // Set default start date (3 months ago)
+        // Definir datas padrão se não fornecidas
         const startDateInput = document.getElementById('start-date');
         if (startDateInput && !startDateInput.value) {
             const threeMonthsAgo = new Date();
@@ -409,43 +372,35 @@
             startDateInput.value = threeMonthsAgo.toISOString().split('T')[0];
         }
         
-        // Set default end date (today)
         const endDateInput = document.getElementById('end-date');
         if (endDateInput && !endDateInput.value) {
             const today = new Date();
             endDateInput.value = today.toISOString().split('T')[0];
         }
         
-        // Set up reset filters button
+        // Botão de reset dos filtros
         const resetButton = document.getElementById('reset-filters');
         if (resetButton) {
             resetButton.addEventListener('click', function() {
-                // Reset filter form and redirect to base URL
                 window.location.href = window.location.pathname;
             });
         }
         
-        // Enable debug mode with URL parameter ?debug=true
+        // Ativação do modo debug via parâmetro ?debug=true
         if (new URLSearchParams(window.location.search).get('debug') === 'true') {
             document.getElementById('chart-debug').style.display = 'block';
-            
-            // Create a debug logger
             window.debugLog = function(message, data) {
                 const debugOutput = document.getElementById('debug-output');
                 const logEntry = document.createElement('div');
                 logEntry.className = 'mb-2 p-2 border-bottom';
-                
                 const timestamp = new Date().toLocaleTimeString();
                 let content = `<strong>${timestamp} - ${message}</strong>`;
-                
                 if (data) {
                     content += `<pre class="mt-2 p-2 bg-light">${JSON.stringify(data, null, 2)}</pre>`;
                 }
-                
                 logEntry.innerHTML = content;
                 debugOutput.appendChild(logEntry);
             };
-            
             console.log("Debug mode enabled");
         }
     });
