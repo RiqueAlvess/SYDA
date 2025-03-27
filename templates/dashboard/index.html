@@ -132,11 +132,15 @@
             <div class="row g-3">
                 <div class="col-md-3">
                     <label for="start-date" class="filter-label">Data Início</label>
-                    <input type="date" id="start-date" class="filter-input" name="start_date">
+                    {% with three_months_ago=request.GET.start_date|default:'' %}
+                    <input type="date" id="start-date" class="filter-input" name="start_date" value="{{ three_months_ago }}">
+                    {% endwith %}
                 </div>
                 <div class="col-md-3">
                     <label for="end-date" class="filter-label">Data Fim</label>
-                    <input type="date" id="end-date" class="filter-input" name="end_date">
+                    {% with today=request.GET.end_date|default:'' %}
+                    <input type="date" id="end-date" class="filter-input" name="end_date" value="{{ today }}">
+                    {% endwith %}
                 </div>
                 <div class="col-md-3">
                     <label for="unit-filter" class="filter-label">Unidade</label>
@@ -201,25 +205,25 @@
     <section class="metrics-grid">
         <div class="metric-card">
             <h2>Taxa de Absenteísmo</h2>
-            <p class="metric-value text-blue">{{ absenteeism_rate }}%</p>
+            <p class="metric-value text-blue" id="absenteeism-rate">{{ absenteeism_rate }}%</p>
             <p class="metric-desc">Baseado na média de horas trabalhadas no Brasil</p>
         </div>
         
         <div class="metric-card">
             <h2>Custo Total</h2>
-            <p class="metric-value text-green">R$ {{ absenteeism_cost|floatformat:2 }}</p>
+            <p class="metric-value text-green" id="total-cost">R$ {{ absenteeism_cost|floatformat:2 }}</p>
             <p class="metric-desc">Baseado no salário mínimo de R$ 1.412,00</p>
         </div>
         
         <div class="metric-card">
             <h2>Dias de Afastamento</h2>
-            <p class="metric-value text-orange">{{ total_days_off }}</p>
+            <p class="metric-value text-orange" id="total-days-off">{{ total_days_off }}</p>
             <p class="metric-desc">Total de dias perdidos</p>
         </div>
         
         <div class="metric-card">
             <h2>Funcionários / Atestados</h2>
-            <p class="metric-value text-purple">{{ total_employees }} / {{ total_absences }}</p>
+            <p class="metric-value text-purple" id="employees-vs-absences">{{ total_employees }} / {{ total_absences }}</p>
             <p class="metric-desc">Total de funcionários e atestados</p>
         </div>
     </section>
@@ -229,14 +233,14 @@
         <section class="chart-card">
             <h2>Top 10 Unidades com Maior Absenteísmo</h2>
             <div class="chart-container">
-                <div id="units-chart"></div>
+                <div id="units-chart" data-chart-type="bar"></div>
             </div>
         </section>
         
         <section class="chart-card">
             <h2>Absenteísmo por Setor</h2>
             <div class="chart-container">
-                <div id="departments-chart"></div>
+                <div id="departments-chart" data-chart-type="bar"></div>
             </div>
         </section>
     </div>
@@ -246,14 +250,14 @@
         <section class="chart-card">
             <h2>Absenteísmo por Grupo Patológico</h2>
             <div class="chart-container">
-                <div id="cid-chart"></div>
+                <div id="cid-chart" data-chart-type="bar"></div>
             </div>
         </section>
         
         <section class="chart-card">
             <h2>Evolução do Absenteísmo por Mês</h2>
             <div class="chart-container">
-                <div id="month-chart"></div>
+                <div id="month-chart" data-chart-type="line"></div>
             </div>
         </section>
     </div>
@@ -262,46 +266,49 @@
     <div class="charts-grid">
         <section class="chart-card">
             <h2>Absenteísmo por Gênero</h2>
-            <div class="gender-grid">
-                <div class="chart-container">
-                    <div id="gender-chart"></div>
-                </div>
+            
+            <!-- Full-width chart container for the pie chart -->
+            <div class="chart-container mb-4">
+                <div id="gender-chart" data-chart-type="pie"></div>
+            </div>
+            
+            <!-- Gender stats section below the chart -->
+            <div class="gender-stats mt-4">
+                <h3 class="text-center border-bottom pb-2 mb-3">Principais Grupos Patológicos por Gênero</h3>
                 
-                <div class="gender-stats">
-                    <div class="stat-section">
-                        <h3>Principais Grupos Patológicos por Gênero</h3>
-                        
-                        {% if gender_cid_data %}
-                        <div class="gender-cid-tables">
-                            {% for gender, cids in gender_cid_data.items %}
-                            <div class="gender-cid-table">
-                                <h4 style="color: {% cycle '#8E24AA' '#D81B60' '#1E88E5' %}">{{ gender }}</h4>
-                                <table class="cid-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Grupo Patológico (CID)</th>
-                                            <th>Qtde</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for cid in cids %}
-                                        <tr>
-                                            <td>{{ cid.grupo_patologico|truncatechars:25 }}</td>
-                                            <td>{{ cid.count }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                {% if gender_cid_data and gender_cid_data.items|length > 0 %}
+                    <div class="row gender-cid-tables">
+                        {% for gender, cids in gender_cid_data.items %}
+                            <div class="col-md-6 mb-3">
+                                <div class="gender-cid-table">
+                                    <h4 class="text-center mb-2" style="color: {% cycle '#8E24AA' '#D81B60' '#1E88E5' %}">{{ gender }}</h4>
+                                    <table class="cid-table table table-sm table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Grupo Patológico (CID)</th>
+                                                <th class="text-center">Qtde</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for cid in cids %}
+                                            <tr>
+                                                <td>{{ cid.grupo_patologico|truncatechars:25 }}</td>
+                                                <td class="text-center">{{ cid.count }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                            {% endfor %}
-                        </div>
-                        {% else %}
-                        <div class="text-center py-3 text-muted">
-                            <p>Dados insuficientes para análise por gênero</p>
-                        </div>
-                        {% endif %}
+                        {% endfor %}
                     </div>
-                </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-info-circle fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">Dados insuficientes para análise detalhada por gênero</p>
+                        <p class="small text-muted">Sincronize mais dados para ver essa análise</p>
+                    </div>
+                {% endif %}
             </div>
         </section>
         
@@ -321,11 +328,11 @@
                         </div>
                         <div class="cost-item">
                             <p class="cost-label">Valor Hora Base:</p>
-                            <p class="cost-value">R$ {{ hourly_rate|floatformat:2 }}</p>
+                            <p class="cost-value" id="hourly-rate">R$ {{ hourly_rate|floatformat:2 }}</p>
                         </div>
                         <div class="cost-item">
                             <p class="cost-label">Total Horas Afastadas:</p>
-                            <p class="cost-value">{{ total_hours_off }} horas</p>
+                            <p class="cost-value" id="total-hours-off">{{ total_hours_off }} horas</p>
                         </div>
                     </div>
                 </div>
@@ -333,15 +340,15 @@
                 <div class="cost-section">
                     <h3>Custo por Setor</h3>
                     <div class="chart-container">
-                        <div id="cost-chart"></div>
+                        <div id="cost-chart" data-chart-type="bar"></div>
                     </div>
                 </div>
                 
                 <div class="cost-section">
                     <h3>Custo Total do Absenteísmo</h3>
                     <div class="total-cost-box">
-                        <p class="total-cost-value">R$ {{ absenteeism_cost|floatformat:2 }}</p>
-                        <p class="cost-percent">Representa aproximadamente {{ absenteeism_rate|floatformat:2 }}% de horas trabalhadas</p>
+                        <p class="total-cost-value" id="total-cost-value">R$ {{ absenteeism_cost|floatformat:2 }}</p>
+                        <p class="cost-percent" id="total-cost-percent">Representa aproximadamente {{ absenteeism_rate|floatformat:2 }}% de horas trabalhadas</p>
                     </div>
                 </div>
                 
@@ -350,15 +357,15 @@
                     <div class="savings-grid">
                         <div class="savings-card">
                             <h4>Economia com redução de 10%</h4>
-                            <p class="savings-value">R$ {{ savings_10|floatformat:2 }}</p>
+                            <p class="savings-value" id="savings-10">R$ {{ savings_10|floatformat:2 }}</p>
                         </div>
                         <div class="savings-card">
                             <h4>Economia com redução de 20%</h4>
-                            <p class="savings-value">R$ {{ savings_20|floatformat:2 }}</p>
+                            <p class="savings-value" id="savings-20">R$ {{ savings_20|floatformat:2 }}</p>
                         </div>
                         <div class="savings-card">
                             <h4>Economia com redução de 30%</h4>
-                            <p class="savings-value">R$ {{ savings_30|floatformat:2 }}</p>
+                            <p class="savings-value" id="savings-30">R$ {{ savings_30|floatformat:2 }}</p>
                         </div>
                     </div>
                 </div>
@@ -375,9 +382,73 @@
     </div>
     <div class="mt-2">Processando dados...</div>
 </div>
+
+<!-- Chart Debug Info (hidden by default) -->
+<div id="chart-debug" class="container mt-4" style="display: none;">
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">Informações de Debug dos Gráficos</h5>
+        </div>
+        <div class="card-body">
+            <div id="debug-output"></div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.plot.ly/plotly-2.27.1.min.js"></script>
+<script>
+    // Set default dates if not provided
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default start date (3 months ago)
+        const startDateInput = document.getElementById('start-date');
+        if (startDateInput && !startDateInput.value) {
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+            startDateInput.value = threeMonthsAgo.toISOString().split('T')[0];
+        }
+        
+        // Set default end date (today)
+        const endDateInput = document.getElementById('end-date');
+        if (endDateInput && !endDateInput.value) {
+            const today = new Date();
+            endDateInput.value = today.toISOString().split('T')[0];
+        }
+        
+        // Set up reset filters button
+        const resetButton = document.getElementById('reset-filters');
+        if (resetButton) {
+            resetButton.addEventListener('click', function() {
+                // Reset filter form and redirect to base URL
+                window.location.href = window.location.pathname;
+            });
+        }
+        
+        // Enable debug mode with URL parameter ?debug=true
+        if (new URLSearchParams(window.location.search).get('debug') === 'true') {
+            document.getElementById('chart-debug').style.display = 'block';
+            
+            // Create a debug logger
+            window.debugLog = function(message, data) {
+                const debugOutput = document.getElementById('debug-output');
+                const logEntry = document.createElement('div');
+                logEntry.className = 'mb-2 p-2 border-bottom';
+                
+                const timestamp = new Date().toLocaleTimeString();
+                let content = `<strong>${timestamp} - ${message}</strong>`;
+                
+                if (data) {
+                    content += `<pre class="mt-2 p-2 bg-light">${JSON.stringify(data, null, 2)}</pre>`;
+                }
+                
+                logEntry.innerHTML = content;
+                debugOutput.appendChild(logEntry);
+            };
+            
+            console.log("Debug mode enabled");
+        }
+    });
+</script>
 <script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}

@@ -45,18 +45,22 @@ document.addEventListener('DOMContentLoaded', function() {
             situation: document.getElementById('situation-filter')
         },
         charts: {
-            units: document.getElementById('chart-units'),
-            departments: document.getElementById('chart-departments'),
-            cid: document.getElementById('chart-cid'),
-            months: document.getElementById('chart-month'),
-            gender: document.getElementById('chart-gender'),
-            costSector: document.getElementById('chart-cost-sector')
+            // CORRIGIDO: Atualizado para corresponder aos IDs no HTML
+            units: document.getElementById('units-chart'),
+            departments: document.getElementById('departments-chart'),
+            cid: document.getElementById('cid-chart'),
+            months: document.getElementById('month-chart'),
+            gender: document.getElementById('gender-chart'),
+            costSector: document.getElementById('cost-chart')
         }
     };
 
     // Main initialization
     async function init() {
         try {
+            // Debug para encontrar problemas com elementos DOM
+            console.log("DOM chart elements:", DOM.charts);
+            
             showLoading();
             await loadData();
             applyInitialFilters();
@@ -83,6 +87,12 @@ document.addEventListener('DOMContentLoaded', function() {
         state.rawEmployees = await employeesRes.json();
         state.rawAbsences = await absencesRes.json();
         
+        // Debug para verificar se os dados foram carregados
+        console.log("Loaded data:", {
+            employees: state.rawEmployees.length,
+            absences: state.rawAbsences.length
+        });
+        
         if (!state.rawEmployees.length || !state.rawAbsences.length) {
             throw new Error('Dados insuficientes');
         }
@@ -90,11 +100,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Filter logic
     function applyInitialFilters() {
+        // Se start_date não estiver definido, use 3 meses atrás
+        if (!DOM.filters.startDate.value) {
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+            DOM.filters.startDate.value = threeMonthsAgo.toISOString().slice(0, 10);
+        }
+        
+        // Se end_date não estiver definido, use hoje
+        if (!DOM.filters.endDate.value) {
+            const today = new Date();
+            DOM.filters.endDate.value = today.toISOString().slice(0, 10);
+        }
+        
         state.filteredAbsences = state.rawAbsences.filter(absence => {
+            if (!absence.dt_inicio_atestado) return false;
+            
             const date = new Date(absence.dt_inicio_atestado);
             return date >= new Date(DOM.filters.startDate.value) && 
                    date <= new Date(DOM.filters.endDate.value);
         });
+        
+        // Debug para verificar filtragem
+        console.log("Filtered absences:", state.filteredAbsences.length);
     }
 
     // Metrics calculation
@@ -116,18 +144,31 @@ document.addEventListener('DOMContentLoaded', function() {
             rate,
             costPercentage: (cost / (CONFIG.MIN_WAGE_BRAZIL * totalEmployees)) * 100
         };
+        
+        // Debug para verificar métricas
+        console.log("Calculated metrics:", state.metrics);
     }
 
     // Charts data preparation
     function prepareChartData() {
         state.charts = {
-            units: groupData('nome_unidade', 'Dias', 'Atestados'),
-            departments: groupData('nome_setor', 'Dias', 'Atestados'),
+            units: groupData('unidade', 'Dias', 'Atestados'),
+            departments: groupData('setor', 'Dias', 'Atestados'),
             cid: groupData('grupo_patologico', 'Atestados', 'Dias'),
             months: groupMonthlyData(),
             gender: groupGenderData(),
             costSector: groupCostData()
         };
+        
+        // Debug para verificar dados dos gráficos
+        console.log("Chart data prepared:", {
+            units: state.charts.units.length,
+            departments: state.charts.departments.length,
+            cid: state.charts.cid.length,
+            months: state.charts.months.length,
+            gender: state.charts.gender.length,
+            costSector: state.charts.costSector.length
+        });
     }
 
     function groupData(field, primaryLabel, secondaryLabel) {
@@ -183,12 +224,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function groupCostData() {
-        return state.charts.departments.slice(0, 5).map(dept => ({
-            label: dept.label,
-            Custo: (dept.Dias * 8) * CONFIG.HOURLY_RATE
-        }));
+        // Em vez de depender de state.charts.departments que ainda não existe
+        // Vamos processar os dados diretamente dos dados filtrados
+        const sectorCosts = {};
+        
+        state.filteredAbsences.forEach(a => {
+            const sector = a.setor || 'Não informado';
+            sectorCosts[sector] = sectorCosts[sector] || { days: 0 };
+            sectorCosts[sector].days += a.dias_afastados || 0;
+        });
+        
+        return Object.entries(sectorCosts)
+            .sort((a, b) => b[1].days - a[1].days)
+            .slice(0, 5)
+            .map(([label, data]) => ({
+                label,
+                Custo: (data.days * 8) * CONFIG.HOURLY_RATE
+            }));
     }
-
+    
     // Charts rendering
     function renderCharts() {
         prepareChartData();
@@ -202,6 +256,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderBarChart(chartKey, title, series) {
         const data = state.charts[chartKey];
+        if (!data || !data.length) {
+            console.log(`No data for ${chartKey} chart`);
+            return;
+        }
+        
+        const chartElement = DOM.charts[chartKey];
+        if (!chartElement) {
+            console.error(`Chart element not found for ${chartKey}`);
+            return;
+        }
+        
         const traces = series.map((s, i) => ({
             x: data.map(d => d.label),
             y: data.map(d => d[s]),
@@ -210,15 +275,28 @@ document.addEventListener('DOMContentLoaded', function() {
             marker: { color: CONFIG.COLORS[i] }
         }));
 
-        Plotly.newPlot(DOM.charts[chartKey], traces, {
+        Plotly.newPlot(chartElement, traces, {
             title: `Top 10 ${title}`,
             barmode: 'group',
             height: 400
         });
+        
+        console.log(`Rendered bar chart: ${chartKey}`);
     }
 
     function renderLineChart() {
         const data = state.charts.months;
+        if (!data || !data.length) {
+            console.log("No data for months chart");
+            return;
+        }
+        
+        const chartElement = DOM.charts.months;
+        if (!chartElement) {
+            console.error("Months chart element not found");
+            return;
+        }
+        
         const trace1 = {
             x: data.map(d => d.month),
             y: data.map(d => d.Dias),
@@ -233,15 +311,28 @@ document.addEventListener('DOMContentLoaded', function() {
             line: { color: CONFIG.COLORS[1], dash: 'dot' }
         };
 
-        Plotly.newPlot(DOM.charts.months, [trace1, trace2], {
+        Plotly.newPlot(chartElement, [trace1, trace2], {
             title: 'Evolução Mensal',
             height: 400
         });
+        
+        console.log("Rendered line chart");
     }
 
     function renderPieChart() {
         const data = state.charts.gender;
-        Plotly.newPlot(DOM.charts.gender, [{
+        if (!data || !data.length) {
+            console.log("No data for gender chart");
+            return;
+        }
+        
+        const chartElement = DOM.charts.gender;
+        if (!chartElement) {
+            console.error("Gender chart element not found");
+            return;
+        }
+        
+        Plotly.newPlot(chartElement, [{
             values: data.map(d => d.value),
             labels: data.map(d => d.label),
             type: 'pie',
@@ -251,11 +342,24 @@ document.addEventListener('DOMContentLoaded', function() {
             title: 'Distribuição por Gênero',
             height: 400
         });
+        
+        console.log("Rendered pie chart");
     }
 
     function renderCostChart() {
         const data = state.charts.costSector;
-        Plotly.newPlot(DOM.charts.costSector, [{
+        if (!data || !data.length) {
+            console.log("No data for cost chart");
+            return;
+        }
+        
+        const chartElement = DOM.charts.costSector;
+        if (!chartElement) {
+            console.error("Cost chart element not found");
+            return;
+        }
+        
+        Plotly.newPlot(chartElement, [{
             x: data.map(d => d.label),
             y: data.map(d => d.Custo),
             type: 'bar',
@@ -265,6 +369,8 @@ document.addEventListener('DOMContentLoaded', function() {
             yaxis: { tickprefix: 'R$ ' },
             height: 400
         });
+        
+        console.log("Rendered cost chart");
     }
 
     // Helpers
@@ -281,28 +387,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateKPIs() {
-        DOM.kpis.rate.textContent = `${state.metrics.rate.toFixed(2)}%`;
-        DOM.kpis.totalCost.textContent = formatCurrency(state.metrics.cost);
-        DOM.kpis.daysOff.textContent = state.metrics.totalDays;
-        DOM.kpis.employeesVsAbsences.textContent = 
+        // Verificar se os elementos existem antes de atualizá-los
+        if (DOM.kpis.rate) DOM.kpis.rate.textContent = `${state.metrics.rate.toFixed(2)}%`;
+        if (DOM.kpis.totalCost) DOM.kpis.totalCost.textContent = formatCurrency(state.metrics.cost);
+        if (DOM.kpis.daysOff) DOM.kpis.daysOff.textContent = state.metrics.totalDays;
+        if (DOM.kpis.employeesVsAbsences) DOM.kpis.employeesVsAbsences.textContent = 
             `${state.metrics.totalEmployees} / ${state.metrics.totalAbsences}`;
-        DOM.kpis.hoursOff.textContent = `${state.metrics.totalHours} horas`;
-        DOM.kpis.hourlyRate.textContent = formatCurrency(CONFIG.HOURLY_RATE);
-        DOM.kpis.costValue.textContent = formatCurrency(state.metrics.cost);
-        DOM.kpis.costPercent.textContent = 
+        if (DOM.kpis.hoursOff) DOM.kpis.hoursOff.textContent = `${state.metrics.totalHours} horas`;
+        if (DOM.kpis.hourlyRate) DOM.kpis.hourlyRate.textContent = formatCurrency(CONFIG.HOURLY_RATE);
+        if (DOM.kpis.costValue) DOM.kpis.costValue.textContent = formatCurrency(state.metrics.cost);
+        if (DOM.kpis.costPercent && state.metrics.costPercentage) DOM.kpis.costPercent.textContent = 
             `Representa ${state.metrics.costPercentage.toFixed(2)}% da folha`;
-        DOM.kpis.savings10.textContent = formatCurrency(state.metrics.cost * 0.1);
-        DOM.kpis.savings20.textContent = formatCurrency(state.metrics.cost * 0.2);
-        DOM.kpis.savings30.textContent = formatCurrency(state.metrics.cost * 0.3);
+        if (DOM.kpis.savings10) DOM.kpis.savings10.textContent = formatCurrency(state.metrics.cost * 0.1);
+        if (DOM.kpis.savings20) DOM.kpis.savings20.textContent = formatCurrency(state.metrics.cost * 0.2);
+        if (DOM.kpis.savings30) DOM.kpis.savings30.textContent = formatCurrency(state.metrics.cost * 0.3);
+        
+        console.log("KPIs updated");
     }
 
     // Event handling
     function setupEventListeners() {
-        DOM.filters.startDate.addEventListener('change', handleFilterChange);
-        DOM.filters.endDate.addEventListener('change', handleFilterChange);
-        DOM.filters.unit.addEventListener('change', handleFilterChange);
-        DOM.filters.department.addEventListener('change', handleFilterChange);
-        DOM.filters.situation.addEventListener('change', handleFilterChange);
+        // Verificar se os elementos de filtro existem antes de adicionar event listeners
+        if (DOM.filters.startDate) DOM.filters.startDate.addEventListener('change', handleFilterChange);
+        if (DOM.filters.endDate) DOM.filters.endDate.addEventListener('change', handleFilterChange);
+        if (DOM.filters.unit) DOM.filters.unit.addEventListener('change', handleFilterChange);
+        if (DOM.filters.department) DOM.filters.department.addEventListener('change', handleFilterChange);
+        if (DOM.filters.situation) DOM.filters.situation.addEventListener('change', handleFilterChange);
+        
+        console.log("Event listeners set up");
     }
 
     async function handleFilterChange() {
@@ -321,11 +433,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // UI Utilities
     function showLoading() {
-        DOM.loading.style.display = 'flex';
+        if (DOM.loading) DOM.loading.style.display = 'flex';
     }
 
     function hideLoading() {
-        DOM.loading.style.display = 'none';
+        if (DOM.loading) DOM.loading.style.display = 'none';
     }
 
     function handleError(error) {
