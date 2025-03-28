@@ -6,8 +6,9 @@ User = get_user_model()
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Cria perfil de usuário quando um novo usuário é criado."""
-    # Aqui você pode adicionar lógica para criar perfis de usuário
-    # ou configurações específicas após a criação de um novo usuário
+    """
+    Cria perfil de usuário quando um novo usuário é criado.
+    """
     if created:
-        pass
+        # Por enquanto, nenhuma ação adicional é necessária:
+        pass  # Intencionalmente vazio, nada a executar no momento.
