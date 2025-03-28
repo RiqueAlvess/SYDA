@@ -33,7 +33,6 @@
 {% endblock %}
 
 {% block content %}
-
 <div class="container py-4">
     <div class="row">
         <div class="col-12">
@@ -97,6 +96,7 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="form_type" value="employee">
                                 
+                                <!-- Exemplo de label associada diretamente pelo for, e a form field gerada pelo Django terá o ID correspondente. -->
                                 <div class="row mb-3">
                                     <div class="col-md-4">
                                         <label for="{{ employee_form.company.id_for_label }}" class="form-label">Empresa</label>
@@ -126,7 +126,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row mb-4">
                                     <div class="col-12">
                                         <label class="form-label">Status para sincronização</label>
@@ -164,7 +164,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">Salvar Configurações</button>
                                     
@@ -174,17 +174,17 @@
                                 </div>
                             </form>
                         </div>
-                        
+
                         <!-- Tab de Absenteísmo -->
                         <div class="tab-pane fade {% if active_tab == 'absence' %}show active{% endif %}" 
                              id="absence-content" 
                              role="tabpanel" 
                              aria-labelledby="absence-tab">
-                            
+
                             <form method="post" action="{% url 'api_config' %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="form_type" value="absence">
-                                
+
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="{{ absence_form.main_company.id_for_label }}" class="form-label">Empresa Principal</label>
@@ -205,7 +205,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="{{ absence_form.code.id_for_label }}" class="form-label">Código</label>
@@ -226,7 +226,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row mb-4">
                                     <div class="col-md-6">
                                         <label for="{{ absence_form.start_date.id_for_label }}" class="form-label">Data Início</label>
@@ -248,16 +248,16 @@
                                         <small class="form-text text-muted">Limite máximo de 30 dias entre as datas</small>
                                     </div>
                                 </div>
-                                
+
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">Salvar Configurações</button>
-                                    
                                     {% if absence_credentials %}
                                     <a href="{% url 'sync_absences' %}" class="btn btn-success sync-button" id="sync-absences-btn">Sincronizar Agora</a>
                                     {% endif %}
                                 </div>
                             </form>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -266,6 +266,7 @@
     </div>
 </div>
 {% endblock %}
+
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
