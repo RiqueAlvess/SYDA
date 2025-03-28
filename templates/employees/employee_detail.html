@@ -10,7 +10,7 @@
             <li class="breadcrumb-item active" aria-current="page">{{ employee.nome }}</li>
         </ol>
     </nav>
-    
+
     <div class="card mb-4">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
@@ -36,22 +36,23 @@
                 <div class="col-md-6">
                     <h5 class="border-bottom pb-2 mb-3 text-primary">Dados Pessoais</h5>
                     
+                    <!-- Exibindo texto puro, não existe input. Evitar uso de <label> -->
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Nome:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Nome:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.nome }}</p>
                         </div>
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">CPF:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">CPF:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.cpf|default:"-" }}</p>
                         </div>
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">RG:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">RG:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">
                                 {{ employee.rg|default:"-" }}
@@ -63,7 +64,7 @@
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Data de Nascimento:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Data de Nascimento:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">
                                 {% if employee.data_nascimento %}
@@ -76,7 +77,7 @@
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Sexo:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Sexo:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">
                                 {% if employee.sexo == 1 %}
@@ -91,7 +92,7 @@
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Estado Civil:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Estado Civil:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">
                                 {% if employee.estado_civil == 1 %}
@@ -116,14 +117,14 @@
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Escolaridade:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Escolaridade:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.escolaridade|default:"-" }}</p>
                         </div>
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Nome da Mãe:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Nome da Mãe:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.nome_mae|default:"-" }}</p>
                         </div>
@@ -134,49 +135,49 @@
                     <h5 class="border-bottom pb-2 mb-3 text-primary">Dados Profissionais</h5>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Matrícula:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Matrícula:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.matricula_funcionario|default:"-" }}</p>
                         </div>
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Empresa:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Empresa:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.nome_empresa|default:"-" }}</p>
                         </div>
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Unidade:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Unidade:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.nome_unidade|default:"-" }}</p>
                         </div>
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Setor:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Setor:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.nome_setor|default:"-" }}</p>
                         </div>
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Cargo:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Cargo:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.nome_cargo|default:"-" }}</p>
                         </div>
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Centro de Custo:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Centro de Custo:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.nome_centro_custo|default:"-" }}</p>
                         </div>
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Data de Admissão:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Data de Admissão:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">
                                 {% if employee.data_admissao %}
@@ -189,7 +190,7 @@
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Regime de Trabalho:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Regime de Trabalho:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.regime_trabalho|default:"-" }}</p>
                         </div>
@@ -204,7 +205,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Email:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Email:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">
                                 {% if employee.email %}
@@ -219,7 +220,7 @@
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Telefone Residencial:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Telefone Residencial:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">
                                 {% if employee.telefone_residencial %}
@@ -233,7 +234,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Telefone Celular:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Telefone Celular:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">
                                 {% if employee.telefone_celular %}
@@ -246,7 +247,7 @@
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Telefone Comercial:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Telefone Comercial:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">
                                 {% if employee.tel_comercial %}
@@ -267,7 +268,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Logradouro:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Logradouro:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">
                                 {% if employee.endereco %}
@@ -284,7 +285,7 @@
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Bairro:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Bairro:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.bairro|default:"-" }}</p>
                         </div>
@@ -292,7 +293,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">Cidade/UF:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">Cidade/UF:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">
                                 {% if employee.cidade or employee.uf %}
@@ -305,7 +306,7 @@
                     </div>
                     
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold text-secondary">CEP:</label>
+                        <div class="col-sm-4 fw-bold text-secondary">CEP:</div>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ employee.cep|default:"-" }}</p>
                         </div>
