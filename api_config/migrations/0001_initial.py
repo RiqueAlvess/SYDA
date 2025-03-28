@@ -4,6 +4,8 @@ import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
+# Defina a constante para evitar a duplicação da string "Criado em".
+CREATED_AT_LABEL = "Criado em"
 
 class Migration(migrations.Migration):
 
@@ -18,19 +20,65 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SyncLog',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('api_type', models.CharField(choices=[('employee', 'Funcionários'), ('absence', 'Absenteísmo')], max_length=50, verbose_name='Tipo de API')),
-                ('company', models.CharField(max_length=255, verbose_name='Empresa')),
-                ('status', models.CharField(choices=[('success', 'Sucesso'), ('error', 'Erro'), ('partial', 'Parcial')], max_length=50, verbose_name='Status')),
-                ('records_processed', models.IntegerField(default=0, verbose_name='Registros Processados')),
-                ('records_success', models.IntegerField(default=0, verbose_name='Registros com Sucesso')),
-                ('records_error', models.IntegerField(default=0, verbose_name='Registros com Erro')),
-                ('error_message', models.TextField(blank=True, null=True, verbose_name='Mensagem de Erro')),
-                ('start_time', models.DateTimeField(verbose_name='Hora Início')),
-                ('end_time', models.DateTimeField(blank=True, null=True, verbose_name='Hora Fim')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('client', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='clients.client', verbose_name='Cliente')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='Usuário')),
+                ('id', models.BigAutoField(
+                    auto_created=True,
+                    primary_key=True,
+                    serialize=False,
+                    verbose_name='ID'
+                )),
+                ('api_type', models.CharField(
+                    choices=[('employee', 'Funcionários'), ('absence', 'Absenteísmo')],
+                    max_length=50,
+                    verbose_name='Tipo de API'
+                )),
+                ('company', models.CharField(
+                    max_length=255,
+                    verbose_name='Empresa'
+                )),
+                ('status', models.CharField(
+                    choices=[('success', 'Sucesso'), ('error', 'Erro'), ('partial', 'Parcial')],
+                    max_length=50,
+                    verbose_name='Status'
+                )),
+                ('records_processed', models.IntegerField(
+                    default=0,
+                    verbose_name='Registros Processados'
+                )),
+                ('records_success', models.IntegerField(
+                    default=0,
+                    verbose_name='Registros com Sucesso'
+                )),
+                ('records_error', models.IntegerField(
+                    default=0,
+                    verbose_name='Registros com Erro'
+                )),
+                ('error_message', models.TextField(
+                    blank=True,
+                    null=True,
+                    verbose_name='Mensagem de Erro'
+                )),
+                ('start_time', models.DateTimeField(
+                    verbose_name='Hora Início'
+                )),
+                ('end_time', models.DateTimeField(
+                    blank=True,
+                    null=True,
+                    verbose_name='Hora Fim'
+                )),
+                ('created_at', models.DateTimeField(
+                    auto_now_add=True,
+                    verbose_name=CREATED_AT_LABEL
+                )),
+                ('client', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to='clients.client',
+                    verbose_name='Cliente'
+                )),
+                ('user', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to=settings.AUTH_USER_MODEL,
+                    verbose_name='Usuário'
+                )),
             ],
             options={
                 'verbose_name': 'Log de Sincronização',
@@ -41,17 +89,52 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='AbsenceCredentials',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('main_company', models.CharField(max_length=255, verbose_name='Empresa Principal')),
-                ('code', models.CharField(max_length=255, verbose_name='Código')),
-                ('key', models.CharField(max_length=255, verbose_name='Chave')),
-                ('work_company', models.CharField(max_length=255, verbose_name='Empresa Trabalho')),
-                ('start_date', models.DateField(verbose_name='Data Início')),
-                ('end_date', models.DateField(verbose_name='Data Fim')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Atualizado em')),
-                ('client', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='clients.client', verbose_name='Cliente')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='Usuário')),
+                ('id', models.BigAutoField(
+                    auto_created=True,
+                    primary_key=True,
+                    serialize=False,
+                    verbose_name='ID'
+                )),
+                ('main_company', models.CharField(
+                    max_length=255,
+                    verbose_name='Empresa Principal'
+                )),
+                ('code', models.CharField(
+                    max_length=255,
+                    verbose_name='Código'
+                )),
+                ('key', models.CharField(
+                    max_length=255,
+                    verbose_name='Chave'
+                )),
+                ('work_company', models.CharField(
+                    max_length=255,
+                    verbose_name='Empresa Trabalho'
+                )),
+                ('start_date', models.DateField(
+                    verbose_name='Data Início'
+                )),
+                ('end_date', models.DateField(
+                    verbose_name='Data Fim'
+                )),
+                ('created_at', models.DateTimeField(
+                    auto_now_add=True,
+                    verbose_name=CREATED_AT_LABEL
+                )),
+                ('updated_at', models.DateTimeField(
+                    auto_now=True,
+                    verbose_name='Atualizado em'
+                )),
+                ('client', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to='clients.client',
+                    verbose_name='Cliente'
+                )),
+                ('user', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to=settings.AUTH_USER_MODEL,
+                    verbose_name='Usuário'
+                )),
             ],
             options={
                 'verbose_name': 'Credencial de Absenteísmo',
@@ -62,19 +145,62 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='EmployeeCredentials',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('company', models.CharField(max_length=255, verbose_name='Empresa')),
-                ('code', models.CharField(max_length=255, verbose_name='Código')),
-                ('key', models.CharField(max_length=255, verbose_name='Chave')),
-                ('is_active', models.BooleanField(default=False, verbose_name='Ativo')),
-                ('is_inactive', models.BooleanField(default=False, verbose_name='Inativo')),
-                ('is_away', models.BooleanField(default=False, verbose_name='Afastado')),
-                ('is_pending', models.BooleanField(default=False, verbose_name='Pendente')),
-                ('is_vacation', models.BooleanField(default=False, verbose_name='Férias')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Atualizado em')),
-                ('client', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='clients.client', verbose_name='Cliente')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='Usuário')),
+                ('id', models.BigAutoField(
+                    auto_created=True,
+                    primary_key=True,
+                    serialize=False,
+                    verbose_name='ID'
+                )),
+                ('company', models.CharField(
+                    max_length=255,
+                    verbose_name='Empresa'
+                )),
+                ('code', models.CharField(
+                    max_length=255,
+                    verbose_name='Código'
+                )),
+                ('key', models.CharField(
+                    max_length=255,
+                    verbose_name='Chave'
+                )),
+                ('is_active', models.BooleanField(
+                    default=False,
+                    verbose_name='Ativo'
+                )),
+                ('is_inactive', models.BooleanField(
+                    default=False,
+                    verbose_name='Inativo'
+                )),
+                ('is_away', models.BooleanField(
+                    default=False,
+                    verbose_name='Afastado'
+                )),
+                ('is_pending', models.BooleanField(
+                    default=False,
+                    verbose_name='Pendente'
+                )),
+                ('is_vacation', models.BooleanField(
+                    default=False,
+                    verbose_name='Férias'
+                )),
+                ('created_at', models.DateTimeField(
+                    auto_now_add=True,
+                    verbose_name=CREATED_AT_LABEL
+                )),
+                ('updated_at', models.DateTimeField(
+                    auto_now=True,
+                    verbose_name='Atualizado em'
+                )),
+                ('client', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to='clients.client',
+                    verbose_name='Cliente'
+                )),
+                ('user', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to=settings.AUTH_USER_MODEL,
+                    verbose_name='Usuário'
+                )),
             ],
             options={
                 'verbose_name': 'Credencial de Funcionário',
