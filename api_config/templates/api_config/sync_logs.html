@@ -1,919 +1,582 @@
-{% extends 'base.html' %}
-
-{% block title %}Log de Sincronização | Data SAAS{% endblock %}
-
-{% block extra_css %}
-<style>
-    .sync-progress {
-        height: 8px;
-        background-color: #e9ecef;
-        border-radius: 3px;
-        margin-top: 5px;
-    }
-    
-    .sync-progress-bar {
-        height: 100%;
-        border-radius: 3px;
-        transition: width 0.3s ease;
-    }
-    
-    .status-badge {
-        font-size: 0.85rem;
-    }
-    
-    .sync-details {
-        margin-top: 5px;
-        font-size: 0.9rem;
-        color: #6c757d;
-    }
-    
-    .loading-spinner {
-        animation: spin 1s linear infinite;
-        display: inline-block;
-        width: 1em;
-        height: 1em;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    .btn-action {
-        font-size: 0.8rem;
-        padding: 0.25rem 0.5rem;
-    }
-    
-    .btn-xs {
-        padding: 0.1rem 0.4rem;
-        font-size: 0.75rem;
-        line-height: 1.2;
-        border-radius: 0.2rem;
-    }
-    
-    .blinking {
-        animation: blinker 1s linear infinite;
-    }
-    
-    @keyframes blinker {
-        50% { opacity: 0.5; }
-    }
-    
-    .hover-actions {
-        visibility: hidden;
-    }
-    
-    tr:hover .hover-actions {
-        visibility: visible;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-
-
-<div class="container py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="mb-0">Log de Sincronização</h1>
-                <div>
-                    <button type="button" class="btn btn-primary me-2" id="sync-employees-btn">
-                        Sincronizar Funcionários
-                    </button>
-                    <button type="button" class="btn btn-primary" id="sync-absences-btn">
-                        Sincronizar Absenteísmo
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Área de status de sincronização em andamento -->
-            <div id="active-syncs" class="mb-4 d-none">
-                <div class="card border-warning">
-                    <div class="card-header bg-warning bg-opacity-25">
-                        <h5 class="mb-0">
-                            <i class="fas fa-sync-alt fa-spin me-2"></i>
-                            Sincronizações em Andamento
-                        </h5>
-                    </div>
-                    <div class="card-body" id="active-syncs-content">
-                        <!-- Conteúdo dinâmico aqui -->
-                    </div>
-                </div>
-            </div>
-            
-            {% if logs %}
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Tipo</th>
-                                    <th>Empresa</th>
-                                    <th>Status</th>
-                                    <th>Progresso</th>
-                                    <th>Registros</th>
-                                    <th>Início</th>
-                                    <th>Fim</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="logs-table-body">
-                                {% for log in logs %}
-                                <tr class="sync-log-row" id="log-row-{{ log.id }}" data-log-id="{{ log.id }}" data-is-complete="{% if log.end_time %}true{% else %}false{% endif %}">
-                                    <td>{{ log.created_at|date:"d/m/Y" }}</td>
-                                    <td>{{ log.get_api_type_display }}</td>
-                                    <td>{{ log.company }}</td>
-                                    <td>
-                                        {% if not log.end_time %}
-                                        <span class="badge bg-warning status-badge" id="status-badge-{{ log.id }}">Em andamento <i class="fas fa-spinner fa-spin"></i></span>
-                                        {% elif log.status == 'success' %}
-                                        <span class="badge bg-success status-badge">Sucesso</span>
-                                        {% elif log.status == 'error' %}
-                                        <span class="badge bg-danger status-badge">Erro</span>
-                                        {% else %}
-                                        <span class="badge bg-info status-badge">Parcial</span>
-                                        {% endif %}
-                                    </td>
-                                    <td width="20%">
-                                        <div class="sync-progress" id="progress-container-{{ log.id }}">
-                                            {% if log.end_time %}
-                                                {% if log.status == 'success' %}
-                                                <div class="sync-progress-bar bg-success" style="width: 100%;"></div>
-                                                {% elif log.status == 'error' %}
-                                                <div class="sync-progress-bar bg-danger" style="width: 100%;"></div>
-                                                {% else %}
-                                                <div class="sync-progress-bar bg-info" style="width: 100%;"></div>
-                                                {% endif %}
-                                            {% else %}
-                                                {% if log.records_processed > 0 and log.records_success > 0 %}
-                                                <div class="sync-progress-bar bg-warning" id="progress-bar-{{ log.id }}" 
-                                                    style="width: {% widthratio log.records_success log.records_processed 100 %}%;"></div>
-                                                {% else %}
-                                                <div class="sync-progress-bar bg-warning" id="progress-bar-{{ log.id }}" style="width: 0%;"></div>
-                                                {% endif %}
-                                            {% endif %}
-                                        </div>
-                                        {% if log.error_message %}
-                                        <div class="sync-details" id="sync-message-{{ log.id }}">{{ log.error_message|truncatechars:100 }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span id="records-count-{{ log.id }}">
-                                            {% if log.records_processed > 0 %}
-                                            {{ log.records_success }}/{{ log.records_processed }}
-                                            {% else %}
-                                            -
-                                            {% endif %}
-                                        </span>
-                                    </td>
-                                    <td>{{ log.start_time|time:"H:i:s" }}</td>
-                                    <td id="end-time-{{ log.id }}">{% if log.end_time %}{{ log.end_time|time:"H:i:s" }}{% else %}-{% endif %}</td>
-                                    <td>
-                                        <div class="btn-group">
-                                            {% if not log.end_time %}
-                                            <button type="button" class="btn btn-danger btn-xs stop-sync-btn" data-log-id="{{ log.id }}">
-                                                <i class="fas fa-stop"></i> Parar
-                                            </button>
-                                            {% endif %}
-                                            <button type="button" class="btn btn-secondary btn-xs hover-actions delete-log-btn" data-log-id="{{ log.id }}">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-info btn-xs hover-actions" data-bs-toggle="modal" data-bs-target="#logDetailsModal" data-log-id="{{ log.id }}">
-                                                <i class="fas fa-info-circle"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    {% if is_paginated %}
-                    <nav class="mt-4" aria-label="Paginação">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1" aria-label="Primeira">
-                                    <span aria-hidden="true">««</span>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Anterior">
-                                    <span aria-hidden="true">«</span>
-                                </a>
-                            </li>
-                            {% endif %}
-                            
-                            {% for i in paginator.page_range %}
-                                {% if i == page_obj.number %}
-                                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-                                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
-                                {% endif %}
-                            {% endfor %}
-                            
-                            {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Próxima">
-                                    <span aria-hidden="true">»</span>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ paginator.num_pages }}" aria-label="Última">
-                                    <span aria-hidden="true">»»</span>
-                                </a>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                    {% endif %}
-                </div>
-            </div>
-            {% else %}
-            <div class="alert alert-info">
-                Nenhum log de sincronização encontrado. Os registros aparecerão aqui quando você sincronizar dados com as APIs externas.
-            </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<!-- Modal de Detalhes do Log -->
-<div class="modal fade" id="logDetailsModal" tabindex="-1" aria-labelledby="logDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="logDetailsModalLabel">Detalhes da Sincronização</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Carregando...</span>
-                    </div>
-                    <p>Carregando detalhes...</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal de Confirmação para Excluir Log -->
-<div class="modal fade" id="deleteLogModal" tabindex="-1" aria-labelledby="deleteLogModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteLogModalLabel">Confirmar Exclusão</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja excluir este registro de sincronização?</p>
-                <p class="text-danger">Esta ação não pode ser desfeita.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal de Confirmação para Parar Sincronização -->
-<div class="modal fade" id="stopSyncModal" tabindex="-1" aria-labelledby="stopSyncModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="stopSyncModalLabel">Confirmar Interrupção</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja interromper esta sincronização?</p>
-                <p class="text-warning">Dados parcialmente sincronizados serão mantidos no sistema.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="confirmStopBtn">Interromper</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Campo oculto para CSRF token -->
-{% csrf_token %}
-
-<!-- Overlay de carregamento -->
-<div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; color: white;">
-    <div class="spinner-border text-light" role="status">
-        <span class="visually-hidden">Carregando...</span>
-    </div>
-    <div class="mt-2">Processando...</div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Referências aos modais
-        const deleteLogModal = new bootstrap.Modal(document.getElementById('deleteLogModal'));
-        const stopSyncModal = new bootstrap.Modal(document.getElementById('stopSyncModal'));
-        const logDetailsModal = new bootstrap.Modal(document.getElementById('logDetailsModal'));
-        
-        // Variáveis para armazenar IDs temporários para ações
-        let currentLogId = null;
-        let activeSyncPolling = true;
-        
-        // Lista de logs em andamento para atualização periódica
-        const activeLogs = [];
-        document.querySelectorAll('.sync-log-row[data-is-complete="false"]').forEach(row => {
-            activeLogs.push(parseInt(row.getAttribute('data-log-id')));
-        });
+  // Break big DOMContentLoaded callback into a top-level function
+  // and multiple smaller subfunctions to reduce complexity.
 
-        // Configurar o polling para atualização em tempo real se houver logs ativos
-        if (activeLogs.length > 0) {
-            updateActiveSyncsPanel();
-            
-            // Iniciar polling a cada 2 segundos
-            const pollingInterval = setInterval(() => {
-                if (!activeSyncPolling) {
-                    clearInterval(pollingInterval);
-                    return;
-                }
-                
-                updateActiveLogs();
-            }, 2000);
-            
-            // Parar o polling ao sair da página
-            window.addEventListener('beforeunload', function() {
-                activeSyncPolling = false;
-                clearInterval(pollingInterval);
-            });
-        }
-        
-        // Função para atualizar o painel de sincronizações ativas
-        function updateActiveSyncsPanel() {
-            if (activeLogs.length > 0) {
-                document.getElementById('active-syncs').classList.remove('d-none');
-                
-                const syncContent = document.getElementById('active-syncs-content');
-                syncContent.innerHTML = '';
-                
-                activeLogs.forEach(logId => {
-                    const logRow = document.getElementById(`log-row-${logId}`);
-                    if (!logRow) return;
-                    
-                    const logType = logRow.querySelector('td:nth-child(2)').textContent;
-                    const logCompany = logRow.querySelector('td:nth-child(3)').textContent;
-                    
-                    const progressHtml = `
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-1">
-                                <strong>${logType} - ${logCompany}</strong>
-                                <button class="btn btn-sm btn-danger stop-sync-btn" data-log-id="${logId}">
-                                    <i class="fas fa-stop"></i> Parar
-                                </button>
-                            </div>
-                            <div class="progress" style="height: 20px;">
-                                <div id="active-progress-${logId}" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" 
-                                     role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                                    <span id="active-progress-text-${logId}">Iniciando...</span>
-                                </div>
-                            </div>
-                            <div id="active-message-${logId}" class="small text-muted mt-1">
-                                Iniciando sincronização...
-                            </div>
-                        </div>
-                    `;
-                    
-                    syncContent.innerHTML += progressHtml;
-                });
-            } else {
-                document.getElementById('active-syncs').classList.add('d-none');
-            }
-        }
-        
-        // Função para atualizar os logs ativos
-        function updateActiveLogs() {
-            // Criar uma cópia para poder modificar durante a iteração
-            const currentActiveLogs = [...activeLogs];
-            
-            currentActiveLogs.forEach(logId => {
-                fetch(`/employees/sync-status/${logId}/`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Erro ao buscar status');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        updateLogUI(logId, data);
-                        
-                        // Se o log foi concluído, remover da lista de ativos
-                        if (data.completed) {
-                            const index = activeLogs.indexOf(logId);
-                            if (index > -1) {
-                                activeLogs.splice(index, 1);
-                            }
-                            
-                            // Atualizar o painel se não houver mais logs ativos
-                            if (activeLogs.length === 0) {
-                                document.getElementById('active-syncs').classList.add('d-none');
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erro ao atualizar log:', error);
-                    });
-            });
-        }
-        
-        // Função para atualizar a UI de um log específico
-        function updateLogUI(logId, data) {
-            // Atualizar a linha na tabela principal
-            const statusBadge = document.getElementById(`status-badge-${logId}`);
-            const progressBar = document.getElementById(`progress-bar-${logId}`);
-            const syncMessage = document.getElementById(`sync-message-${logId}`);
-            const recordsCount = document.getElementById(`records-count-${logId}`);
-            const endTime = document.getElementById(`end-time-${logId}`);
-            
-            // Calcular a porcentagem de progresso
-            let progressPercent = 0;
-            if (data.records_processed > 0 && data.records_success > 0) {
-                progressPercent = (data.records_success / data.records_processed) * 100;
-            }
-            
-            // Atualizar o painel de sincronizações ativas
-            const activeProgress = document.getElementById(`active-progress-${logId}`);
-            const activeProgressText = document.getElementById(`active-progress-text-${logId}`);
-            const activeMessage = document.getElementById(`active-message-${logId}`);
-            
-            if (activeProgress) {
-                activeProgress.style.width = `${progressPercent}%`;
-                activeProgress.setAttribute('aria-valuenow', progressPercent);
-                
-                if (data.records_processed > 0) {
-                    activeProgressText.textContent = `${data.records_success}/${data.records_processed} (${Math.round(progressPercent)}%)`;
-                } else {
-                    activeProgressText.textContent = 'Iniciando...';
-                }
-                
-                if (data.error_message) {
-                    activeMessage.textContent = data.error_message;
-                }
-            }
-            
-            // Se o log foi concluído, atualizar o status
-            if (data.completed) {
-                if (statusBadge) {
-                    let statusClass = 'bg-info';
-                    let statusText = 'Parcial';
-                    
-                    if (data.status === 'success') {
-                        statusClass = 'bg-success';
-                        statusText = 'Sucesso';
-                    } else if (data.status === 'error') {
-                        statusClass = 'bg-danger';
-                        statusText = 'Erro';
-                    }
-                    
-                    statusBadge.className = `badge ${statusClass} status-badge`;
-                    statusBadge.innerHTML = statusText;
-                }
-                
-                if (progressBar) {
-                    progressBar.style.width = '100%';
-                    progressBar.className = `sync-progress-bar ${data.status === 'success' ? 'bg-success' : data.status === 'error' ? 'bg-danger' : 'bg-info'}`;
-                }
-                
-                if (endTime && data.end_time) {
-                    // Formatando o horário de fim
-                    const endDateTime = new Date(data.end_time);
-                    endTime.textContent = endDateTime.toLocaleTimeString('pt-BR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit'
-                    });
-                }
-                
-                // Remover o botão de parar sincronização
-                const row = document.getElementById(`log-row-${logId}`);
-                if (row) {
-                    const actionsCell = row.querySelector('td:last-child');
-                    const stopButton = actionsCell.querySelector('.stop-sync-btn');
-                    if (stopButton) {
-                        stopButton.remove();
-                    }
-                }
-                
-                // Recarregar a página após 2 segundos para mostrar resultados finais
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-            } else {
-                // Atualizar o progresso para sincronização em andamento
-                if (progressBar) {
-                    progressBar.style.width = `${progressPercent}%`;
-                }
-            }
-            
-            // Atualizar contagem de registros
-            if (recordsCount && data.records_processed > 0) {
-                recordsCount.textContent = `${data.records_success}/${data.records_processed}`;
-            }
-            
-            // Atualizar mensagem de erro/progresso
-            if (syncMessage && data.error_message) {
-                syncMessage.textContent = data.error_message;
-            }
-        }
-        
-        // Handlers para botões de sincronização
-        const syncEmployeesBtn = document.getElementById('sync-employees-btn');
-        if (syncEmployeesBtn) {
-            syncEmployeesBtn.addEventListener('click', function() {
-                startSync('employees');
-            });
-        }
-        
-        const syncAbsencesBtn = document.getElementById('sync-absences-btn');
-        if (syncAbsencesBtn) {
-            syncAbsencesBtn.addEventListener('click', function() {
-                startSync('absences');
-            });
-        }
-        
-        // Função para iniciar sincronização
-        function startSync(type) {
-            const url = type === 'employees' ? '{% url "sync_employees" %}' : '{% url "sync_absences" %}';
-            const button = type === 'employees' ? document.getElementById('sync-employees-btn') : document.getElementById('sync-absences-btn');
-            
-            // Desabilitar botão e mostrar spinner
-            const originalText = button.innerHTML;
-            button.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Iniciando...`;
-            button.disabled = true;
-            
-            // Fazer requisição AJAX
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Restaurar botão
-                button.innerHTML = originalText;
-                button.disabled = false;
-                
-                if (data.success) {
-                    // Adicionar o novo log à lista de ativos
-                    if (data.sync_log_id) {
-                        activeLogs.push(data.sync_log_id);
-                        
-                        // Se é o primeiro log ativo, iniciar o polling
-                        if (activeLogs.length === 1) {
-                            activeSyncPolling = true;
-                            const pollingInterval = setInterval(() => {
-                                if (!activeSyncPolling) {
-                                    clearInterval(pollingInterval);
-                                    return;
-                                }
-                                
-                                updateActiveLogs();
-                            }, 2000);
-                        }
-                        
-                        // Atualizar o painel
-                        updateActiveSyncsPanel();
-                        
-                        // Recarregar a página após um curto atraso para mostrar o novo log
-                        setTimeout(() => {
-                            location.reload();
-                        }, 500);
-                    }
-                    
-                    showToast('Sincronização', data.message, 'success');
-                } else {
-                    showToast('Erro', data.message, 'danger');
-                }
-            })
-            .catch(error => {
-                button.innerHTML = originalText;
-                button.disabled = false;
-                console.error('Erro:', error);
-                showToast('Erro', 'Erro ao iniciar sincronização. Tente novamente mais tarde.', 'danger');
-            });
-        }
-        
-        // Event delegation para botões de ação na tabela
-        const logsTableBody = document.querySelector('#logs-table-body');
-        if (logsTableBody) {
-            logsTableBody.addEventListener('click', function(e) {
-                // Botão para deletar log
-                if (e.target.closest('.delete-log-btn')) {
-                    const btn = e.target.closest('.delete-log-btn');
-                    currentLogId = btn.getAttribute('data-log-id');
-                    deleteLogModal.show();
-                }
-                
-                // Botão para parar sincronização
-                if (e.target.closest('.stop-sync-btn')) {
-                    const btn = e.target.closest('.stop-sync-btn');
-                    currentLogId = btn.getAttribute('data-log-id');
-                    stopSyncModal.show();
-                }
-                
-                // Botão para ver detalhes
-                if (e.target.closest('[data-bs-toggle="modal"][data-bs-target="#logDetailsModal"]')) {
-                    const btn = e.target.closest('[data-bs-toggle="modal"][data-bs-target="#logDetailsModal"]');
-                    const logId = btn.getAttribute('data-log-id');
-                    loadLogDetails(logId);
-                }
-            });
-        }
-        
-        // Handler para confirmação de exclusão
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        if (confirmDeleteBtn) {
-            confirmDeleteBtn.addEventListener('click', function() {
-                if (currentLogId) {
-                    deleteLog(currentLogId);
-                }
-            });
-        }
-        
-        // Handler para confirmação de parar sincronização
-        const confirmStopBtn = document.getElementById('confirmStopBtn');
-        if (confirmStopBtn) {
-            confirmStopBtn.addEventListener('click', function() {
-                if (currentLogId) {
-                    stopSync(currentLogId);
-                }
-            });
-        }
-        
-        // Função para carregar detalhes do log no modal
-        function loadLogDetails(logId) {
-            const modalBody = document.querySelector('#logDetailsModal .modal-body');
-            modalBody.innerHTML = `
-                <div class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Carregando...</span>
-                    </div>
-                    <p>Carregando detalhes...</p>
-                </div>
-            `;
-            
-            logDetailsModal.show();
-            
-            fetch(`/employees/sync-details/${logId}/`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro ao buscar detalhes');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Preencher o modal com os detalhes
-                    let statusClass = 'info';
-                    if (data.status === 'success') statusClass = 'success';
-                    if (data.status === 'error') statusClass = 'danger';
-                    
-                    const startTime = new Date(data.start_time).toLocaleString('pt-BR');
-                    const endTime = data.end_time ? new Date(data.end_time).toLocaleString('pt-BR') : '-';
-                    
-                    modalBody.innerHTML = `
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <h6>Informações Gerais</h6>
-                                <table class="table table-sm">
-                                    <tr>
-                                        <th>Tipo:</th>
-                                        <td>${data.api_type === 'employee' ? 'Funcionários' : 'Absenteísmo'}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Empresa:</th>
-                                        <td>${data.company}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Status:</th>
-                                        <td><span class="badge bg-${statusClass}">${data.status_display}</span></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Início:</th>
-                                        <td>${startTime}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Fim:</th>
-                                        <td>${endTime}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-md-6">
-                                <h6>Estatísticas</h6>
-                                <table class="table table-sm">
-                                    <tr>
-                                        <th>Total Processados:</th>
-                                        <td>${data.records_processed}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Sucessos:</th>
-                                        <td>${data.records_success}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Erros:</th>
-                                        <td>${data.records_error}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Taxa de Sucesso:</th>
-                                        <td>${data.records_processed > 0 ? Math.round((data.records_success / data.records_processed) * 100) : 0}%</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Duração:</th>
-                                        <td>${data.duration || '-'}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                        ${data.error_message ? `
-                        <div class="alert alert-${data.status === 'error' ? 'danger' : 'info'}">
-                            <h6>Mensagem do Sistema:</h6>
-                            <pre class="mb-0">${data.error_message}</pre>
-                        </div>
-                        ` : ''}
-                    `;
-                })
-                .catch(error => {
-                    console.error('Erro ao carregar detalhes:', error);
-                    modalBody.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-circle"></i> Erro ao carregar detalhes do log.
-                        </div>
-                    `;
-                });
-        }
-        
-        // Função para deletar um log
-        function deleteLog(logId) {
-            showLoading();
-            
-            fetch(`/employees/sync-delete/${logId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                hideLoading();
-                deleteLogModal.hide();
-                
-                if (data.success) {
-                    // Remover a linha da tabela
-                    const row = document.getElementById(`log-row-${logId}`);
-                    if (row) {
-                        row.remove();
-                    }
-                    
-                    // Remover da lista de logs ativos se necessário
-                    const index = activeLogs.indexOf(parseInt(logId));
-                    if (index > -1) {
-                        activeLogs.splice(index, 1);
-                        
-                        // Atualizar o painel se não houver mais logs ativos
-                        if (activeLogs.length === 0) {
-                            document.getElementById('active-syncs').classList.add('d-none');
-                        } else {
-                            updateActiveSyncsPanel();
-                        }
-                    }
-                    
-                    showToast('Sucesso', 'Registro de sincronização excluído com sucesso!', 'success');
-                } else {
-                    showToast('Erro', data.message || 'Erro ao excluir o registro.', 'danger');
-                }
-            })
-            .catch(error => {
-                hideLoading();
-                deleteLogModal.hide();
-                console.error('Erro:', error);
-                showToast('Erro', 'Erro ao processar a requisição.', 'danger');
-            });
-        }
-        
-        // Função para parar uma sincronização
-        function stopSync(logId) {
-            showLoading();
-            
-            fetch(`/employees/sync-stop/${logId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                hideLoading();
-                stopSyncModal.hide();
-                
-                if (data.success) {
-                    // Remover da lista de logs ativos
-                    const index = activeLogs.indexOf(parseInt(logId));
-                    if (index > -1) {
-                        activeLogs.splice(index, 1);
-                        
-                        // Atualizar o painel se não houver mais logs ativos
-                        if (activeLogs.length === 0) {
-                            document.getElementById('active-syncs').classList.add('d-none');
-                        } else {
-                            updateActiveSyncsPanel();
-                        }
-                    }
-                    
-                    // Atualizar a UI para mostrar que o log foi finalizado
-                    const statusBadge = document.getElementById(`status-badge-${logId}`);
-                    if (statusBadge) {
-                        statusBadge.className = 'badge bg-warning status-badge';
-                        statusBadge.innerHTML = 'Interrompido';
-                    }
-                    
-                    const progressBar = document.getElementById(`progress-bar-${logId}`);
-                    if (progressBar) {
-                        progressBar.className = 'sync-progress-bar bg-warning';
-                        progressBar.style.width = '100%';
-                    }
-                    
-                    const endTimeCell = document.getElementById(`end-time-${logId}`);
-                    if (endTimeCell) {
-                        const now = new Date();
-                        endTimeCell.textContent = now.toLocaleTimeString('pt-BR', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit'
-                        });
-                    }
-                    
-                    // Remover o botão de parar
-                    const row = document.getElementById(`log-row-${logId}`);
-                    if (row) {
-                        const actionsCell = row.querySelector('td:last-child');
-                        const stopButton = actionsCell.querySelector('.stop-sync-btn');
-                        if (stopButton) {
-                            stopButton.remove();
-                        }
-                    }
-                    
-                    showToast('Sucesso', 'Sincronização interrompida com sucesso!', 'success');
-                } else {
-                    showToast('Erro', data.message || 'Não foi possível interromper a sincronização.', 'danger');
-                }
-            })
-            .catch(error => {
-                hideLoading();
-                stopSyncModal.hide();
-                console.error('Erro:', error);
-                showToast('Erro', 'Erro ao processar a requisição.', 'danger');
-            });
-        }
-        
-        // Funções auxiliares
-        function showLoading() {
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.style.display = 'flex';
-        }
-        
-        function hideLoading() {
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.style.display = 'none';
-        }
-        
-        function showToast(title, message, type = 'success') {
-            const toastEl = document.getElementById('notification-toast');
-            if (!toastEl) return;
-            
-            const toastTitle = document.getElementById('toast-title');
-            const toastMessage = document.getElementById('toast-message');
-            
-            toastTitle.textContent = title;
-            toastMessage.innerHTML = message;
-            
-            toastEl.className = `toast text-white bg-${type}`;
-            
-            const toast = new bootstrap.Toast(toastEl, {
-                autohide: true,
-                delay: 5000
-            });
-            toast.show();
-        }
+  document.addEventListener('DOMContentLoaded', onDomReady);
+
+  let activeLogs = [];
+  let activeSyncPolling = true;
+  let currentLogId = null;
+
+  function onDomReady() {
+    // 1) Initialize references to DOM elements
+    initializeReferences();
+
+    // 2) Collect all active logs
+    collectActiveLogs();
+
+    // 3) Possibly start polling if we have active logs
+    maybeStartPolling();
+
+    // 4) Attach event listeners
+    attachGlobalEventListeners();
+    attachTableEventListeners();
+
+    // 5) Show/hide active sync panel
+    updateActiveSyncsPanel();
+  }
+
+  // ----------------------------------------------
+  // 1) Initialize references to DOM elements
+  // ----------------------------------------------
+  function initializeReferences() {
+    window.deleteLogModal = new bootstrap.Modal(document.getElementById('deleteLogModal'));
+    window.stopSyncModal = new bootstrap.Modal(document.getElementById('stopSyncModal'));
+    window.logDetailsModal = new bootstrap.Modal(document.getElementById('logDetailsModal'));
+
+    window.syncEmployeesBtn = document.getElementById('sync-employees-btn');
+    window.syncAbsencesBtn = document.getElementById('sync-absences-btn');
+    window.logsTableBody = document.querySelector('#logs-table-body');
+  }
+
+  // ----------------------------------------------
+  // 2) Collect active logs
+  // ----------------------------------------------
+  function collectActiveLogs() {
+    document
+      .querySelectorAll('.sync-log-row[data-is-complete="false"]')
+      .forEach(row => {
+        activeLogs.push(parseInt(row.getAttribute('data-log-id')));
+      });
+  }
+
+  // ----------------------------------------------
+  // 3) Possibly start polling
+  // ----------------------------------------------
+  function maybeStartPolling() {
+    if (activeLogs.length === 0) {
+      // No logs to poll
+      return;
+    }
+    // If logs exist, start the polling loop
+    const pollingInterval = setInterval(() => {
+      if (!activeSyncPolling) {
+        clearInterval(pollingInterval);
+        return;
+      }
+      updateActiveLogs();
+    }, 2000);
+
+    // Stop polling on page unload
+    window.addEventListener('beforeunload', () => {
+      activeSyncPolling = false;
+      clearInterval(pollingInterval);
     });
+  }
+
+  // ----------------------------------------------
+  // 4) Attach event listeners for Sync buttons
+  // ----------------------------------------------
+  function attachGlobalEventListeners() {
+    if (syncEmployeesBtn) {
+      syncEmployeesBtn.addEventListener('click', () => startSync('employees'));
+    }
+    if (syncAbsencesBtn) {
+      syncAbsencesBtn.addEventListener('click', () => startSync('absences'));
+    }
+
+    document.getElementById('confirmDeleteBtn')?.addEventListener('click', () => {
+      if (currentLogId) {
+        deleteLog(currentLogId);
+      }
+    });
+
+    document.getElementById('confirmStopBtn')?.addEventListener('click', () => {
+      if (currentLogId) {
+        stopSync(currentLogId);
+      }
+    });
+  }
+
+  // ----------------------------------------------
+  // 5) Attach event listeners for the logs table
+  // ----------------------------------------------
+  function attachTableEventListeners() {
+    if (!logsTableBody) return;
+
+    logsTableBody.addEventListener('click', function(e) {
+      // Distinguish each button type
+      if (e.target.closest('.delete-log-btn')) {
+        handleDeleteLogClick(e);
+      } else if (e.target.closest('.stop-sync-btn')) {
+        handleStopSyncClick(e);
+      } else if (e.target.closest('[data-bs-toggle="modal"][data-bs-target="#logDetailsModal"]')) {
+        handleLogDetailsClick(e);
+      }
+    });
+  }
+
+  // *** Sub-handlers for Table Clicks ***
+
+  function handleDeleteLogClick(e) {
+    const btn = e.target.closest('.delete-log-btn');
+    currentLogId = btn.getAttribute('data-log-id');
+    window.deleteLogModal.show();
+  }
+
+  function handleStopSyncClick(e) {
+    const btn = e.target.closest('.stop-sync-btn');
+    currentLogId = btn.getAttribute('data-log-id');
+    window.stopSyncModal.show();
+  }
+
+  function handleLogDetailsClick(e) {
+    const btn = e.target.closest('[data-bs-toggle="modal"][data-bs-target="#logDetailsModal"]');
+    const logId = btn.getAttribute('data-log-id');
+    loadLogDetails(logId);
+  }
+
+  // ----------------------------------------------
+  // 6) Show/hide the active sync panel
+  // ----------------------------------------------
+  function updateActiveSyncsPanel() {
+    const activeSyncsDiv = document.getElementById('active-syncs');
+    if (activeLogs.length > 0) {
+      activeSyncsDiv.classList.remove('d-none');
+      const syncContent = document.getElementById('active-syncs-content');
+      syncContent.innerHTML = '';
+      activeLogs.forEach(logId => addSyncContent(syncContent, logId));
+    } else {
+      activeSyncsDiv.classList.add('d-none');
+    }
+  }
+
+  function addSyncContent(syncContent, logId) {
+    const logRow = document.getElementById(`log-row-${logId}`);
+    if (!logRow) return;
+
+    const logType = logRow.querySelector('td:nth-child(2)')?.textContent || '';
+    const logCompany = logRow.querySelector('td:nth-child(3)')?.textContent || '';
+    const progressHtml = `
+      <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+              <strong>${logType} - ${logCompany}</strong>
+              <button class="btn btn-sm btn-danger stop-sync-btn" data-log-id="${logId}">
+                  <i class="fas fa-stop"></i> Parar
+              </button>
+          </div>
+          <div class="progress" style="height: 20px;">
+              <div id="active-progress-${logId}" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" 
+                  role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                  <span id="active-progress-text-${logId}">Iniciando...</span>
+              </div>
+          </div>
+          <div id="active-message-${logId}" class="small text-muted mt-1">
+              Iniciando sincronização...
+          </div>
+      </div>
+    `;
+    syncContent.innerHTML += progressHtml;
+  }
+
+  // ----------------------------------------------
+  // 7) Polling function to update logs
+  // ----------------------------------------------
+  function updateActiveLogs() {
+    const currentActiveLogs = [...activeLogs];
+    currentActiveLogs.forEach(logId => {
+      fetch(`/employees/sync-status/${logId}/`)
+        .then(response => {
+          if (!response.ok) throw new Error('Erro ao buscar status');
+          return response.json();
+        })
+        .then(data => {
+          updateLogUI(logId, data);
+          if (data.completed) removeCompletedLog(logId);
+        })
+        .catch(error => console.error('Erro ao atualizar log:', error));
+    });
+  }
+
+  function removeCompletedLog(logId) {
+    const idx = activeLogs.indexOf(logId);
+    if (idx > -1) {
+      activeLogs.splice(idx, 1);
+    }
+    if (activeLogs.length === 0) {
+      document.getElementById('active-syncs').classList.add('d-none');
+    }
+  }
+
+  // ----------------------------------------------
+  // 8) Update UI for a single log
+  // ----------------------------------------------
+  function updateLogUI(logId, data) {
+    // Many of these DOM references may not exist if the row is gone
+    const statusBadge = document.getElementById(`status-badge-${logId}`);
+    const progressBar = document.getElementById(`progress-bar-${logId}`);
+    const syncMessage = document.getElementById(`sync-message-${logId}`);
+    const recordsCount = document.getElementById(`records-count-${logId}`);
+    const endTimeEl = document.getElementById(`end-time-${logId}`);
+    const activeProgress = document.getElementById(`active-progress-${logId}`);
+    const activeProgressText = document.getElementById(`active-progress-text-${logId}`);
+    const activeMessage = document.getElementById(`active-message-${logId}`);
+
+    const percent = calcProgressPercent(data);
+
+    if (activeProgress) {
+      updateActiveProgressUI(activeProgress, activeProgressText, activeMessage, data, percent);
+    }
+    if (data.completed) {
+      finalizeLogUI(logId, data);
+    } else if (progressBar) {
+      progressBar.style.width = `${percent}%`;
+    }
+    if (recordsCount && data.records_processed > 0) {
+      recordsCount.textContent = `${data.records_success}/${data.records_processed}`;
+    }
+    if (syncMessage && data.error_message) {
+      syncMessage.textContent = data.error_message;
+    }
+    if (endTimeEl && data.end_time && data.completed) {
+      endTimeEl.textContent = formatTime(data.end_time);
+    }
+  }
+
+  function calcProgressPercent(data) {
+    if (data.records_processed > 0 && data.records_success > 0) {
+      return (data.records_success / data.records_processed) * 100;
+    }
+    return 0;
+  }
+
+  function updateActiveProgressUI(bar, barText, msgEl, data, percent) {
+    bar.style.width = `${percent}%`;
+    bar.setAttribute('aria-valuenow', percent);
+    if (data.records_processed > 0) {
+      barText.textContent = `${data.records_success}/${data.records_processed} (${Math.round(percent)}%)`;
+    } else {
+      barText.textContent = 'Iniciando...';
+    }
+    if (data.error_message) {
+      msgEl.textContent = data.error_message;
+    }
+  }
+
+  function finalizeLogUI(logId, data) {
+    // Update status badge
+    const statusBadge = document.getElementById(`status-badge-${logId}`);
+    if (statusBadge) {
+      let { cssClass, text } = getStatusBadgeProps(data.status);
+      statusBadge.className = `badge ${cssClass} status-badge`;
+      statusBadge.innerHTML = text;
+    }
+    // Update progress bar
+    const progressBar = document.getElementById(`progress-bar-${logId}`);
+    if (progressBar) {
+      progressBar.style.width = '100%';
+      let finalClass = 'bg-info';
+      if (data.status === 'success') finalClass = 'bg-success';
+      else if (data.status === 'error') finalClass = 'bg-danger';
+      progressBar.className = `sync-progress-bar ${finalClass}`;
+    }
+    // Remove stop button
+    removeStopSyncButton(logId);
+
+    // Reload after short delay
+    setTimeout(() => window.location.reload(), 2000);
+  }
+
+  function removeStopSyncButton(logId) {
+    const row = document.getElementById(`log-row-${logId}`);
+    if (!row) return;
+
+    const actionsCell = row.querySelector('td:last-child');
+    const stopButton = actionsCell?.querySelector('.stop-sync-btn');
+    if (stopButton) stopButton.remove();
+  }
+
+  function getStatusBadgeProps(status) {
+    let cssClass = 'bg-info';
+    let text = 'Parcial';
+    if (status === 'success') {
+      cssClass = 'bg-success';
+      text = 'Sucesso';
+    } else if (status === 'error') {
+      cssClass = 'bg-danger';
+      text = 'Erro';
+    }
+    return { cssClass, text };
+  }
+
+  // ----------------------------------------------
+  // 9) Start sync (employees or absences)
+  // ----------------------------------------------
+  function startSync(type) {
+    const isEmployees = type === 'employees';
+    const url = isEmployees ? '{% url "sync_employees" %}' : '{% url "sync_absences" %}';
+    const button = isEmployees ? syncEmployeesBtn : syncAbsencesBtn;
+
+    if (!button) return;
+    const originalText = button.innerHTML;
+    button.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Iniciando...`;
+    button.disabled = true;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      button.innerHTML = originalText;
+      button.disabled = false;
+      handleSyncResponse(data);
+    })
+    .catch(err => {
+      button.innerHTML = originalText;
+      button.disabled = false;
+      console.error('Erro:', err);
+      showToast('Erro', 'Erro ao iniciar sincronização. Tente novamente mais tarde.', 'danger');
+    });
+  }
+
+  function handleSyncResponse(data) {
+    if (data.success) {
+      if (data.sync_log_id) {
+        activeLogs.push(data.sync_log_id);
+        // If it's the first active log
+        if (activeLogs.length === 1) {
+          maybeStartPolling();
+        }
+        updateActiveSyncsPanel();
+        // Reload quickly to show new log
+        setTimeout(() => location.reload(), 500);
+      }
+      showToast('Sincronização', data.message, 'success');
+    } else {
+      showToast('Erro', data.message, 'danger');
+    }
+  }
+
+  // ----------------------------------------------
+  // 10) Load log details
+  // ----------------------------------------------
+  function loadLogDetails(logId) {
+    const modalBody = document.querySelector('#logDetailsModal .modal-body');
+    if (!modalBody) return;
+
+    modalBody.innerHTML = `
+      <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Carregando...</span>
+        </div>
+        <p>Carregando detalhes...</p>
+      </div>
+    `;
+    window.logDetailsModal.show();
+
+    fetch(`/employees/sync-details/${logId}/`)
+      .then(r => {
+        if (!r.ok) throw new Error('Erro ao buscar detalhes');
+        return r.json();
+      })
+      .then(data => fillLogDetailsModal(modalBody, data))
+      .catch(err => {
+        console.error('Erro ao carregar detalhes:', err);
+        modalBody.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> Erro ao carregar detalhes do log.
+          </div>
+        `;
+      });
+  }
+
+  function fillLogDetailsModal(modalBody, data) {
+    const startTime = formatDateTime(data.start_time);
+    const endTime = data.end_time ? formatDateTime(data.end_time) : '-';
+    const statusClass = data.status === 'success'
+      ? 'success'
+      : data.status === 'error'
+      ? 'danger'
+      : 'info';
+
+    modalBody.innerHTML = `
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <h6>Informações Gerais</h6>
+          <table class="table table-sm">
+            <tr><th>Tipo:</th><td>${data.api_type === 'employee' ? 'Funcionários' : 'Absenteísmo'}</td></tr>
+            <tr><th>Empresa:</th><td>${data.company}</td></tr>
+            <tr><th>Status:</th><td><span class="badge bg-${statusClass}">${data.status_display}</span></td></tr>
+            <tr><th>Início:</th><td>${startTime}</td></tr>
+            <tr><th>Fim:</th><td>${endTime}</td></tr>
+          </table>
+        </div>
+        <div class="col-md-6">
+          <h6>Estatísticas</h6>
+          <table class="table table-sm">
+            <tr><th>Total Processados:</th><td>${data.records_processed}</td></tr>
+            <tr><th>Sucessos:</th><td>${data.records_success}</td></tr>
+            <tr><th>Erros:</th><td>${data.records_error}</td></tr>
+            <tr><th>Taxa de Sucesso:</th><td>${data.records_processed > 0 ? Math.round((data.records_success / data.records_processed) * 100) : 0}%</td></tr>
+            <tr><th>Duração:</th><td>${data.duration || '-'}</td></tr>
+          </table>
+        </div>
+      </div>
+      ${
+        data.error_message
+          ? `<div class="alert alert-${
+              data.status === 'error' ? 'danger' : 'info'
+            }"><h6>Mensagem do Sistema:</h6><pre class="mb-0">${data.error_message}</pre></div>`
+          : ''
+      }
+    `;
+  }
+
+  // ----------------------------------------------
+  // 11) Delete a log
+  // ----------------------------------------------
+  function deleteLog(logId) {
+    showLoading();
+    fetch(`/employees/sync-delete/${logId}/`, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      hideLoading();
+      window.deleteLogModal.hide();
+      if (data.success) {
+        removeLogRow(logId);
+        showToast('Sucesso', 'Registro de sincronização excluído com sucesso!', 'success');
+      } else {
+        showToast('Erro', data.message || 'Erro ao excluir o registro.', 'danger');
+      }
+    })
+    .catch(err => {
+      hideLoading();
+      window.deleteLogModal.hide();
+      console.error('Erro:', err);
+      showToast('Erro', 'Erro ao processar a requisição.', 'danger');
+    });
+  }
+
+  function removeLogRow(logId) {
+    const row = document.getElementById(`log-row-${logId}`);
+    if (row) row.remove();
+
+    // Remove from active logs if needed
+    const index = activeLogs.indexOf(parseInt(logId));
+    if (index > -1) {
+      activeLogs.splice(index, 1);
+      updateActiveSyncsPanel();
+    }
+  }
+
+  // ----------------------------------------------
+  // 12) Stop an ongoing sync
+  // ----------------------------------------------
+  function stopSync(logId) {
+    showLoading();
+    fetch(`/employees/sync-stop/${logId}/`, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      hideLoading();
+      window.stopSyncModal.hide();
+      if (data.success) {
+        handleStopSyncSuccess(logId);
+      } else {
+        showToast('Erro', data.message || 'Não foi possível interromper a sincronização.', 'danger');
+      }
+    })
+    .catch(err => {
+      hideLoading();
+      window.stopSyncModal.hide();
+      console.error('Erro:', err);
+      showToast('Erro', 'Erro ao processar a requisição.', 'danger');
+    });
+  }
+
+  function handleStopSyncSuccess(logId) {
+    const idx = activeLogs.indexOf(parseInt(logId));
+    if (idx > -1) {
+      activeLogs.splice(idx, 1);
+      updateActiveSyncsPanel();
+    }
+
+    const statusBadge = document.getElementById(`status-badge-${logId}`);
+    if (statusBadge) {
+      statusBadge.className = 'badge bg-warning status-badge';
+      statusBadge.innerHTML = 'Interrompido';
+    }
+
+    const progressBar = document.getElementById(`progress-bar-${logId}`);
+    if (progressBar) {
+      progressBar.className = 'sync-progress-bar bg-warning';
+      progressBar.style.width = '100%';
+    }
+
+    const endTimeCell = document.getElementById(`end-time-${logId}`);
+    if (endTimeCell) endTimeCell.textContent = formatTime(new Date());
+
+    removeStopSyncButton(logId);
+    showToast('Sucesso', 'Sincronização interrompida com sucesso!', 'success');
+  }
+
+  // ----------------------------------------------
+  // 13) Utility functions
+  // ----------------------------------------------
+  function showLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'flex';
+  }
+
+  function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  function showToast(title, message, type = 'success') {
+    const toastEl = document.getElementById('notification-toast');
+    if (!toastEl) return;
+    const toastTitle = document.getElementById('toast-title');
+    const toastMessage = document.getElementById('toast-message');
+
+    toastTitle.textContent = title;
+    toastMessage.innerHTML = message;
+    toastEl.className = `toast text-white bg-${type}`;
+
+    const toast = new bootstrap.Toast(toastEl, {
+      autohide: true,
+      delay: 5000
+    });
+    toast.show();
+  }
+
+  function formatTime(dateObj) {
+    if (!dateObj) return '-';
+    if (typeof dateObj === 'string') dateObj = new Date(dateObj);
+    return dateObj.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  }
+
+  function formatDateTime(dateStr) {
+    const d = new Date(dateStr);
+    return d.toLocaleString('pt-BR');
+  }
 </script>
-{% endblock %}
