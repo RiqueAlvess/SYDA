@@ -376,7 +376,7 @@
       margin-bottom: 0;
   }
 
-  /* Seção "Como Funciona" com setas */
+  /* Seção \"Como Funciona\" com setas */
   .step-box {
       background: #fff;
       border: 1px solid var(--border-light);
@@ -807,7 +807,7 @@
                     <li><i class="fas fa-check-circle"></i> Funcionários ilimitados</li>
                     <li><i class="fas fa-check-circle"></i> Sincronização automática</li>
                     <li><i class="fas fa-check-circle"></i> Relatórios avançados</li>
-                    <li><i class="fas fa-check-circle"></i> Exportação de dados</li>
+                    <li><i class="fas fa-check-circle\"></i> Exportação de dados</li>
                     <li><i class="fas fa-check-circle"></i> Suporte prioritário</li>
                 </ul>
                 <a href="{% url 'signup' %}" class="btn btn-primary w-100">Experimente 14 dias grátis</a>
@@ -866,7 +866,7 @@
 <!-- JavaScript para a navegação responsiva e efeitos -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Menu toggle para mobile
+    // Menu toggle para mobile - em um BUTTON (elemento interativo)
     const menuToggle = document.getElementById('menuToggle');
     const navLinks = document.getElementById('navLinks');
     const navButtons = document.getElementById('navButtons');
@@ -889,7 +889,7 @@
     });
     
     // Smooth scroll para links de âncora
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    document.querySelectorAll('a[href^=\"#\"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
         e.preventDefault();
         
