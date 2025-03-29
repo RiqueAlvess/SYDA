@@ -9,6 +9,8 @@ from django.utils import timezone
 from .models import EmployeeCredentials, AbsenceCredentials, SyncLog
 from .forms import EmployeeCredentialsForm, AbsenceCredentialsForm
 from clients.models import Client
+from clients.mixins import ClientQuerySetMixin  # Import adicionado
+
 
 class ApiConfigView(LoginRequiredMixin, TemplateView):
     """View principal para configurações de API"""
@@ -17,9 +19,8 @@ class ApiConfigView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Recuperar cliente relacionado ao usuário atual (para simplificar, usaremos o primeiro cliente)
-        client = Client.objects.first()
-        
+        # Recuperar cliente relacionado ao usuário atual
+        client = self.request.client
         # Se não houver cliente cadastrado, mostrar mensagem de erro
         if not client:
             messages.error(self.request, "Não há clientes cadastrados no sistema. Por favor, cadastre um cliente antes de continuar.")
@@ -43,15 +44,15 @@ class ApiConfigView(LoginRequiredMixin, TemplateView):
         # Preparar formulários
         if employee_credentials:
             employee_form = EmployeeCredentialsForm(instance=employee_credentials, 
-                                                  user=self.request.user, 
-                                                  client=client)
+                                                    user=self.request.user, 
+                                                    client=client)
         else:
             employee_form = EmployeeCredentialsForm(user=self.request.user, client=client)
         
         if absence_credentials:
             absence_form = AbsenceCredentialsForm(instance=absence_credentials, 
-                                                user=self.request.user, 
-                                                client=client)
+                                                  user=self.request.user, 
+                                                  client=client)
         else:
             absence_form = AbsenceCredentialsForm(user=self.request.user, client=client)
         
@@ -71,7 +72,7 @@ class ApiConfigView(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         # Identificar qual formulário foi enviado
         form_type = request.POST.get('form_type')
-        client = Client.objects.first()  # Para simplificar, usaremos o primeiro cliente
+        client = self.request.client  # Uso do cliente a partir da requisição
         
         # Verificar se existe pelo menos um cliente
         if not client:
@@ -119,7 +120,8 @@ class ApiConfigView(LoginRequiredMixin, TemplateView):
         # Se nenhum formulário válido for identificado, redirecionar para a página principal
         return redirect('api_config')
 
-class SyncLogListView(LoginRequiredMixin, ListView):
+
+class SyncLogListView(LoginRequiredMixin, ClientQuerySetMixin, ListView):
     """View para listar logs de sincronização"""
     model = SyncLog
     template_name = 'api_config/sync_logs.html'
@@ -127,5 +129,8 @@ class SyncLogListView(LoginRequiredMixin, ListView):
     paginate_by = 20
     
     def get_queryset(self):
-        # Filtrar logs pelo usuário atual
-        return SyncLog.objects.filter(user=self.request.user).order_by('-created_at')
+        client = self.request.client
+        if client:
+            return SyncLog.objects.filter(user=self.request.user, client=client).order_by('-created_at')
+        else:
+            return SyncLog.objects.filter(user=self.request.user).order_by('-created_at')
