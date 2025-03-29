@@ -338,9 +338,10 @@
 
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="loading-overlay">
-    <div class="spinner-border text-light" role="status">
+    <!-- Using <output> instead of a generic element with role="status" for better accessibility -->
+    <output class="spinner-border text-light">
         <span class="visually-hidden">Carregando...</span>
-    </div>
+    </output>
     <div class="mt-2">Processando dados...</div>
 </div>
 
