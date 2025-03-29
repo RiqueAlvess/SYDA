@@ -312,71 +312,7 @@
       overflow: hidden;
   }
 
-  /* Seções Gerais */
-  .section {
-      padding: 100px 0;
-      scroll-margin-top: 80px;
-  }
-
-  .section-alt {
-      background-color: var(--secondary-color);
-  }
-
-  .section .text-center h2 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: var(--primary-color);
-      margin-bottom: 16px;
-  }
-
-  .section p {
-      color: var(--text-secondary);
-      max-width: 800px;
-      margin: 0 auto 40px;
-  }
-
-  /* Cards de Recursos */
-  .card {
-      background: #fff;
-      border: 1px solid var(--border-light);
-      border-radius: 12px;
-      padding: 28px;
-      text-align: center;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-  }
-
-  .card:hover {
-      transform: translateY(-6px);
-      box-shadow: var(--shadow);
-  }
-
-  .card-icon {
-      font-size: 2.5rem;
-      color: var(--highlight-color);
-      margin-bottom: 20px;
-      transition: transform 0.3s ease;
-  }
-
-  .card:hover .card-icon {
-      transform: scale(1.1);
-  }
-
-  .card h3 {
-      margin-bottom: 16px;
-      color: var(--primary-color);
-      font-size: 1.5rem;
-  }
-
-  .card p {
-      font-size: 1rem;
-      margin-top: auto;
-      margin-bottom: 0;
-  }
-
-  /* Seção \"Como Funciona\" com setas */
+  /* Seção "Como Funciona" com setas */
   .step-box {
       background: #fff;
       border: 1px solid var(--border-light);
@@ -807,7 +743,7 @@
                     <li><i class="fas fa-check-circle"></i> Funcionários ilimitados</li>
                     <li><i class="fas fa-check-circle"></i> Sincronização automática</li>
                     <li><i class="fas fa-check-circle"></i> Relatórios avançados</li>
-                    <li><i class="fas fa-check-circle\"></i> Exportação de dados</li>
+                    <li><i class="fas fa-check-circle"></i> Exportação de dados</li>
                     <li><i class="fas fa-check-circle"></i> Suporte prioritário</li>
                 </ul>
                 <a href="{% url 'signup' %}" class="btn btn-primary w-100">Experimente 14 dias grátis</a>
@@ -889,7 +825,7 @@
     });
     
     // Smooth scroll para links de âncora
-    document.querySelectorAll('a[href^=\"#\"]').forEach(anchor => {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
         e.preventDefault();
         
