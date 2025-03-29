@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 
 from api_config.models import EmployeeCredentials, AbsenceCredentials, SyncLog
-from .forms import EmployeeCredentialsForm, AbsenceCredentialsForm
+from api_config.forms import EmployeeCredentialsForm, AbsenceCredentialsForm
 from clients.models import Client
 from clients.mixins import ClientQuerySetMixin  # Import adicionado
 
