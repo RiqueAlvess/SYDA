@@ -66,10 +66,10 @@ class SignUpView(CreateView):
         response = super().form_valid(form)
         user = self.object
         
-        # Associar usuário a um cliente - baseado no domínio do email ou outras regras
+        # Associar usuário a um cliente baseado no domínio do email
         email_domain = user.email.split('@')[-1]
         
-        # Tentar encontrar cliente existente com este domínio ou criar um
+        # Tentar encontrar cliente existente com este domínio ou criar um novo
         client, created = Client.objects.get_or_create(
             subdomain=email_domain.split('.')[0],
             defaults={
@@ -96,9 +96,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Obter o primeiro cliente (simplificação)
-        client = Client.objects.first()
+        # Obter o cliente associado ao usuário atual (não o primeiro cliente)
+        client = self.request.client
         
+        # Verificar se o usuário tem um cliente associado
+        if not client:
+            context['no_client'] = True
+            return context
+            
         # Adicionar contadores ao contexto
         if Employee is not None and client is not None:
             context['total_employees'] = Employee.objects.filter(client=client).count()
