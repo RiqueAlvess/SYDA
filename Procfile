@@ -1,1 +1,1 @@
-web: gunicorn data_saas.wsgi
+web: bash init.sh && gunicorn data_saas.wsgi
