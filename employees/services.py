@@ -67,7 +67,6 @@ class APIService:
                 return APIService._finalize_sync_log(sync_log, "error", error_msg)
 
             if not employees_data:
-                # Nenhum registro
                 logger.info(NO_EMPLOYEES_FOUND_MSG)
                 sync_log.status = "success"
                 sync_log.error_message = NO_EMPLOYEES_FOUND_MSG
@@ -302,9 +301,14 @@ class APIService:
                     last_update_percent,
                 )
 
-        final_status = (
-            "success" if error_records == 0 else "partial" if success_records > 0 else "error"
-        )
+        # Transformamos a condicional aninhada em if/elif/else:
+        if error_records == 0:
+            final_status = "success"
+        elif success_records > 0:
+            final_status = "partial"
+        else:
+            final_status = "error"
+
         sync_log.records_processed = total_records
         sync_log.records_success = success_records
         sync_log.records_error = error_records
@@ -424,7 +428,7 @@ class APIService:
                 f"Processando: {processed_count}/{total_records} registros "
                 f"({round(current_percent)}%)"
             )
-            sync_log.save(update_fields=["records_processed", "records_success", "records_error", "error_message"])
+            sync_log.save(update_fields=["records_processed","records_success","records_error","error_message"])
         return last_update
 
     # ----------------------------
@@ -448,9 +452,14 @@ class APIService:
         success_records = sum(1 for r in results if r)
         error_records = total_records - success_records
 
-        final_status = (
-            "success" if error_records == 0 else "partial" if success_records > 0 else "error"
-        )
+        # Ao invés do ternário aninhado, utilizamos if/elif/else
+        if error_records == 0:
+            final_status = "success"
+        elif success_records > 0:
+            final_status = "partial"
+        else:
+            final_status = "error"
+
         sync_log.records_processed = total_records
         sync_log.records_success = success_records
         sync_log.records_error = error_records
