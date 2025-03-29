@@ -174,6 +174,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         
         context['cost_chart'] = self._build_cost_chart(absences, hourly_rate)
         
+        # Pré-serializa a configuração dos gráficos para uso seguro no template
+        context['chart_config_json'] = json.dumps({'displaylogo': False})
+        
         return context
     
     # --------------------------------------
