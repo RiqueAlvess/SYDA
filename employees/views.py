@@ -514,7 +514,12 @@ def sync_absences(request):
 @login_required
 def sync_status(request, sync_id):
     """API para verificar status de uma sincronização."""
-    sync_log = get_object_or_404(SyncLog, id=sync_id, user=request.user)
+    sync_log = get_object_or_404(
+        SyncLog,
+        id=sync_id,
+        user=request.user,
+        client=request.client
+    )
     completed = sync_log.end_time is not None
     
     data = {
@@ -537,7 +542,12 @@ def sync_status(request, sync_id):
 @login_required
 def sync_details(request, sync_id):
     """API para obter detalhes de uma sincronização."""
-    sync_log = get_object_or_404(SyncLog, id=sync_id, user=request.user)
+    sync_log = get_object_or_404(
+        SyncLog,
+        id=sync_id,
+        user=request.user,
+        client=request.client
+    )
     
     data = {
         'id': sync_log.id,
@@ -565,7 +575,12 @@ def sync_details(request, sync_id):
 def sync_delete(request, sync_id):
     """View para excluir um log de sincronização."""
     if request.method == 'POST':
-        sync_log = get_object_or_404(SyncLog, id=sync_id, user=request.user)
+        sync_log = get_object_or_404(
+            SyncLog,
+            id=sync_id,
+            user=request.user,
+            client=request.client
+        )
         try:
             sync_log.delete()
             return JsonResponse({'success': True, 'message': 'Log excluído com sucesso'})
@@ -579,7 +594,12 @@ def sync_delete(request, sync_id):
 def sync_stop(request, sync_id):
     """View para parar uma sincronização em andamento."""
     if request.method == 'POST':
-        sync_log = get_object_or_404(SyncLog, id=sync_id, user=request.user)
+        sync_log = get_object_or_404(
+            SyncLog,
+            id=sync_id,
+            user=request.user,
+            client=request.client
+        )
         
         if sync_log.end_time:
             return JsonResponse({'success': False, 'message': 'Esta sincronização já foi concluída'})
