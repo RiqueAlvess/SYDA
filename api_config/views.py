@@ -19,11 +19,14 @@ class ApiConfigView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Recuperar cliente relacionado ao usuário atual
+        # Recuperar o cliente associado à requisição
         client = self.request.client
         # Se não houver cliente cadastrado, mostrar mensagem de erro
         if not client:
-            messages.error(self.request, "Não há clientes cadastrados no sistema. Por favor, cadastre um cliente antes de continuar.")
+            messages.error(
+                self.request,
+                "Não há clientes cadastrados no sistema. Por favor, cadastre um cliente antes de continuar."
+            )
             context.update({
                 'no_clients': True,
                 'active_tab': self.request.GET.get('tab', 'employee')
@@ -43,18 +46,28 @@ class ApiConfigView(LoginRequiredMixin, TemplateView):
         
         # Preparar formulários
         if employee_credentials:
-            employee_form = EmployeeCredentialsForm(instance=employee_credentials, 
-                                                    user=self.request.user, 
-                                                    client=client)
+            employee_form = EmployeeCredentialsForm(
+                instance=employee_credentials, 
+                user=self.request.user, 
+                client=client
+            )
         else:
-            employee_form = EmployeeCredentialsForm(user=self.request.user, client=client)
+            employee_form = EmployeeCredentialsForm(
+                user=self.request.user, 
+                client=client
+            )
         
         if absence_credentials:
-            absence_form = AbsenceCredentialsForm(instance=absence_credentials, 
-                                                  user=self.request.user, 
-                                                  client=client)
+            absence_form = AbsenceCredentialsForm(
+                instance=absence_credentials, 
+                user=self.request.user, 
+                client=client
+            )
         else:
-            absence_form = AbsenceCredentialsForm(user=self.request.user, client=client)
+            absence_form = AbsenceCredentialsForm(
+                user=self.request.user, 
+                client=client
+            )
         
         # Adicionar dados ao contexto
         context.update({
@@ -76,13 +89,20 @@ class ApiConfigView(LoginRequiredMixin, TemplateView):
         
         # Verificar se existe pelo menos um cliente
         if not client:
-            messages.error(request, "Não há clientes cadastrados no sistema. Por favor, cadastre um cliente antes de continuar.")
+            messages.error(
+                request,
+                "Não há clientes cadastrados no sistema. Por favor, cadastre um cliente antes de continuar."
+            )
             return redirect('api_config')
         
         if form_type == 'employee':
             # Processar formulário de funcionários
-            instance = EmployeeCredentials.objects.filter(user=request.user, client=client).first()
-            form = EmployeeCredentialsForm(request.POST, instance=instance, user=request.user, client=client)
+            instance = EmployeeCredentials.objects.filter(
+                user=request.user, client=client
+            ).first()
+            form = EmployeeCredentialsForm(
+                request.POST, instance=instance, user=request.user, client=client
+            )
             
             if form.is_valid():
                 credential = form.save(commit=False)
@@ -100,8 +120,12 @@ class ApiConfigView(LoginRequiredMixin, TemplateView):
             
         elif form_type == 'absence':
             # Processar formulário de absenteísmo
-            instance = AbsenceCredentials.objects.filter(user=request.user, client=client).first()
-            form = AbsenceCredentialsForm(request.POST, instance=instance, user=request.user, client=client)
+            instance = AbsenceCredentials.objects.filter(
+                user=request.user, client=client
+            ).first()
+            form = AbsenceCredentialsForm(
+                request.POST, instance=instance, user=request.user, client=client
+            )
             
             if form.is_valid():
                 credential = form.save(commit=False)
@@ -131,6 +155,10 @@ class SyncLogListView(LoginRequiredMixin, ClientQuerySetMixin, ListView):
     def get_queryset(self):
         client = self.request.client
         if client:
-            return SyncLog.objects.filter(user=self.request.user, client=client).order_by('-created_at')
+            return SyncLog.objects.filter(
+                user=self.request.user, client=client
+            ).order_by('-created_at')
         else:
-            return SyncLog.objects.filter(user=self.request.user).order_by('-created_at')
+            return SyncLog.objects.filter(
+                user=self.request.user
+            ).order_by('-created_at')
