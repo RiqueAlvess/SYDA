@@ -118,8 +118,7 @@ CSP_IMG_SRC = ("'self'", "data:", "https://cdn.jsdelivr.net")
 
 # CORS (Cross-Origin Resource Sharing)
 CORS_ALLOWED_ORIGINS = [
-    "https://yourdomain.com",
-    # Adicione outros domínios permitidos conforme necessário
+    "https://syda-app.onrender.com"
 ]
 CORS_ALLOW_CREDENTIALS = True
 
@@ -442,3 +441,104 @@ if DEBUG:
         "Isso é perigoso! Defina DEBUG=False no ambiente de produção.",
         RuntimeWarning
     )
+
+# =========================================================================
+# CORREÇÃO AUTOMÁTICA DO BANCO DE DADOS
+# =========================================================================
+# Adicionar a coluna client_id se não existir
+import django
+if django.VERSION >= (3, 2):
+    # Executar apenas após a inicialização completa do Django
+    from django.apps import apps
+    
+    # Esta função será chamada quando o Django estiver pronto
+    def add_client_id_column(sender, **kwargs):
+        if not DEBUG or os.environ.get('RENDER'):  # Executar em produção ou no Render
+            from django.db import connection
+            try:
+                # Verificar se a coluna client_id existe na tabela accounts_user
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT 1 
+                        FROM information_schema.columns 
+                        WHERE table_name = 'accounts_user' 
+                        AND column_name = 'client_id'
+                    );
+                    """)
+                    column_exists = cursor.fetchone()[0]
+                    
+                    # Se a coluna não existir, adicione-a
+                    if not column_exists:
+                        print("Adicionando coluna client_id à tabela accounts_user...")
+                        # Verificar se a tabela clients_client existe
+                        cursor.execute("""
+                        SELECT EXISTS (
+                            SELECT 1 
+                            FROM information_schema.tables 
+                            WHERE table_name = 'clients_client'
+                        );
+                        """)
+                        clients_table_exists = cursor.fetchone()[0]
+                        
+                        if clients_table_exists:
+                            cursor.execute("""
+                            ALTER TABLE accounts_user 
+                            ADD COLUMN client_id INTEGER REFERENCES clients_client(id) 
+                            ON DELETE CASCADE;
+                            """)
+                            print("Coluna client_id adicionada com sucesso!")
+                        else:
+                            print("Tabela clients_client não existe ainda. A coluna client_id não pode ser adicionada.")
+            except Exception as e:
+                print(f"Erro ao modificar banco de dados: {e}")
+    
+    # Conectar a função ao sinal ready do Django
+    try:
+        from django.db.models.signals import post_migrate
+        post_migrate.connect(add_client_id_column, sender=apps.get_app_config('accounts'))
+        print("Registrado correção automática do banco de dados para accounts_user.client_id")
+    except Exception as e:
+        print(f"Erro ao registrar correção automática do banco de dados: {e}")
+
+# Solução de Emergência: Tenta adicionar a coluna imediatamente também
+try:
+    if not DEBUG or os.environ.get('RENDER'):  # Executar em produção ou no Render
+        from django.db import connection
+        
+        # Verificar se a coluna client_id existe na tabela accounts_user
+        with connection.cursor() as cursor:
+            cursor.execute("""
+            SELECT EXISTS (
+                SELECT 1 
+                FROM information_schema.columns 
+                WHERE table_name = 'accounts_user' 
+                AND column_name = 'client_id'
+            );
+            """)
+            column_exists = cursor.fetchone()[0]
+            
+            # Se a coluna não existir, adicione-a
+            if not column_exists:
+                print("Adicionando coluna client_id à tabela accounts_user (modo emergência)...")
+                # Verificar se a tabela clients_client existe
+                cursor.execute("""
+                SELECT EXISTS (
+                    SELECT 1 
+                    FROM information_schema.tables 
+                    WHERE table_name = 'clients_client'
+                );
+                """)
+                clients_table_exists = cursor.fetchone()[0]
+                
+                if clients_table_exists:
+                    cursor.execute("""
+                    ALTER TABLE accounts_user 
+                    ADD COLUMN client_id INTEGER REFERENCES clients_client(id) 
+                    ON DELETE CASCADE;
+                    """)
+                    print("Coluna client_id adicionada com sucesso!")
+                else:
+                    print("Tabela clients_client não existe ainda. A coluna client_id não pode ser adicionada.")
+except Exception as e:
+    print(f"Erro na solução de emergência para o banco de dados: {e}")
