@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load json_script %}
 
 {% block title %}Dashboard de Absenteísmo | SYDA{% endblock %}
 
@@ -377,8 +376,10 @@
 <!-- Plotly.js (com fallback) -->
 <script src="https://cdn.plot.ly/plotly-2.27.1.min.js" onerror="console.error('Erro ao carregar Plotly.js - verifique sua conexão com a internet')"></script>
 
-{% if chart_config %}
-    {{ chart_config|json_script:"chart-config" }}
+{% if chart_config_json %}
+    <script id="chart-config" type="application/json">
+        {{ chart_config_json|escapejs }}
+    </script>
     <script>
          var CHART_CONFIG = JSON.parse(document.getElementById('chart-config').textContent);
     </script>
