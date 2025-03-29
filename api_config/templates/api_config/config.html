@@ -59,8 +59,9 @@
             {% else %}
             <div class="card">
                 <div class="card-header">
+                    <!-- Retiramos role=\"presentation\" do <li>, pois não é necessário e não se trata de um papel interativo. -->
                     <ul class="nav nav-tabs card-header-tabs" id="apiConfigTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
+                        <li class="nav-item">
                             <a class="nav-link {% if active_tab == 'employee' %}active{% endif %}" 
                                id="employee-tab" 
                                data-bs-toggle="tab" 
@@ -71,7 +72,7 @@
                                 Funcionários
                             </a>
                         </li>
-                        <li class="nav-item" role="presentation">
+                        <li class="nav-item">
                             <a class="nav-link {% if active_tab == 'absence' %}active{% endif %}" 
                                id="absence-tab" 
                                data-bs-toggle="tab" 
@@ -96,7 +97,7 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="form_type" value="employee">
                                 
-                                <!-- Exemplo de label associada diretamente pelo for, e a form field gerada pelo Django terá o ID correspondente. -->
+                                <!-- Exemplo de label associada diretamente pelo for -->
                                 <div class="row mb-3">
                                     <div class="col-md-4">
                                         <label for="{{ employee_form.company.id_for_label }}" class="form-label">Empresa</label>
@@ -127,43 +128,42 @@
                                     </div>
                                 </div>
 
-                                <div class="row mb-4">
-                                    <div class="col-12">
-                                        <label class="form-label">Status para sincronização</label>
-                                        <div class="status-checks">
-                                            <div class="form-check">
-                                                {{ employee_form.is_active }}
-                                                <label class="form-check-label" for="{{ employee_form.is_active.id_for_label }}">
-                                                    Ativo
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                {{ employee_form.is_inactive }}
-                                                <label class="form-check-label" for="{{ employee_form.is_inactive.id_for_label }}">
-                                                    Inativo
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                {{ employee_form.is_away }}
-                                                <label class="form-check-label" for="{{ employee_form.is_away.id_for_label }}">
-                                                    Afastado
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                {{ employee_form.is_pending }}
-                                                <label class="form-check-label" for="{{ employee_form.is_pending.id_for_label }}">
-                                                    Pendente
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                {{ employee_form.is_vacation }}
-                                                <label class="form-check-label" for="{{ employee_form.is_vacation.id_for_label }}">
-                                                    Férias
-                                                </label>
-                                            </div>
+                                <!-- Em vez de label sem for, usamos <fieldset> + <legend> para agrupar checkboxes -->
+                                <fieldset class="mb-4">
+                                    <legend class="form-label">Status para sincronização</legend>
+                                    <div class="status-checks">
+                                        <div class="form-check">
+                                            {{ employee_form.is_active }}
+                                            <label class="form-check-label" for="{{ employee_form.is_active.id_for_label }}">
+                                                Ativo
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ employee_form.is_inactive }}
+                                            <label class="form-check-label" for="{{ employee_form.is_inactive.id_for_label }}">
+                                                Inativo
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ employee_form.is_away }}
+                                            <label class="form-check-label" for="{{ employee_form.is_away.id_for_label }}">
+                                                Afastado
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ employee_form.is_pending }}
+                                            <label class="form-check-label" for="{{ employee_form.is_pending.id_for_label }}">
+                                                Pendente
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ employee_form.is_vacation }}
+                                            <label class="form-check-label" for="{{ employee_form.is_vacation.id_for_label }}">
+                                                Férias
+                                            </label>
                                         </div>
                                     </div>
-                                </div>
+                                </fieldset>
 
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">Salvar Configurações</button>
@@ -297,18 +297,16 @@
             }, 10000);
         }
         
-        // Adicione um evento de clique aos botões de sincronização
+        // Sincronização de Funcionários
         const employeeSyncBtn = document.querySelector('a.btn-success[href="{% url "sync_employees" %}"]');
         if (employeeSyncBtn) {
             employeeSyncBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                // Mostrar spinner enquanto processa
                 const originalText = this.innerHTML;
                 this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Iniciando...';
                 this.disabled = true;
                 
-                // Fazer requisição AJAX para iniciar sincronização de funcionários
                 fetch('{% url "sync_employees" %}', {
                     method: 'POST',
                     headers: {
@@ -318,15 +316,12 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    // Restaurar botão
                     this.innerHTML = originalText;
                     this.disabled = false;
                     
                     if (data.success) {
-                        // Mostrar mensagem de sucesso
                         showAlert(this.closest('form'), data.message + ' <a href="{% url "sync_logs" %}" class="alert-link">Ver logs</a>', 'success');
                     } else {
-                        // Mostrar mensagem de erro
                         showAlert(this.closest('form'), data.message, 'danger');
                     }
                 })
@@ -339,7 +334,7 @@
             });
         }
         
-        // Repetir o mesmo para o botão de sincronização de absenteísmo
+        // Sincronização de Absenteísmo
         const absenceSyncBtn = document.querySelector('a.btn-success[href="{% url "sync_absences" %}"]');
         if (absenceSyncBtn) {
             absenceSyncBtn.addEventListener('click', function(e) {
