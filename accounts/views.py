@@ -9,7 +9,8 @@ from django.utils import timezone
 from api_config.models import EmployeeCredentials, AbsenceCredentials, SyncLog
 from api_config.forms import EmployeeCredentialsForm, AbsenceCredentialsForm
 from clients.models import Client
-from clients.mixins import ClientQuerySetMixin  # Import adicionado
+from clients.mixins import ClientQuerySetMixin
+from .forms import CustomAuthenticationForm 
 
 
 class ApiConfigView(LoginRequiredMixin, TemplateView):
