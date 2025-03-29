@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load json_script %}
 
 {% block title %}Dashboard de Absenteísmo | SYDA{% endblock %}
 
@@ -283,8 +284,6 @@
     <div class="charts-grid">
         <section class="chart-card">
             <h2>Absenteísmo por Gênero</h2>
-            
-            <!-- Gráfico de pizza para o absenteísmo por gênero -->
             <div class="chart-container mb-4">
                 <div id="gender-chart" data-chart-type="pie"></div>
             </div>
@@ -355,7 +354,6 @@
 
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="loading-overlay">
-    <!-- Using <output> instead of a generic element with role="status" for better accessibility -->
     <output class="spinner-border text-light">
         <span class="visually-hidden">Carregando...</span>
     </output>
@@ -379,10 +377,18 @@
 <!-- Plotly.js (com fallback) -->
 <script src="https://cdn.plot.ly/plotly-2.27.1.min.js" onerror="console.error('Erro ao carregar Plotly.js - verifique sua conexão com a internet')"></script>
 
+{% if chart_config %}
+    {{ chart_config|json_script:"chart-config" }}
+    <script>
+         var CHART_CONFIG = JSON.parse(document.getElementById('chart-config').textContent);
+    </script>
+{% else %}
+    <script>
+         var CHART_CONFIG = {displaylogo: false};
+    </script>
+{% endif %}
+
 <script>
-    // Variável global para configuração dos gráficos (remover "Produced with Plotly")
-    var CHART_CONFIG = {% if chart_config %}{{ chart_config|safe }}{% else %}{displaylogo: false}{% endif %};
-    
     document.addEventListener('DOMContentLoaded', function() {
         // Definir datas padrão se não fornecidas
         const startDateInput = document.getElementById('start-date');
@@ -409,7 +415,6 @@
         // Verificar se Plotly está disponível
         if (typeof Plotly === 'undefined') {
             console.error('Biblioteca Plotly não foi carregada corretamente.');
-            // Alertar o usuário
             document.querySelectorAll('.chart-container').forEach(container => {
                 container.innerHTML = `
                 <div class="error-placeholder">
