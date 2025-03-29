@@ -91,7 +91,7 @@ class SyncLog(models.Model):
     records_processed = models.IntegerField(_("Registros Processados"), default=0)
     records_success = models.IntegerField(_("Registros com Sucesso"), default=0)
     records_error = models.IntegerField(_("Registros com Erro"), default=0)
-    error_message = models.TextField(_("Mensagem de Erro"), blank=True, null=True)
+    error_message = models.TextField(_("Mensagem de Erro"), blank=True)
     start_time = models.DateTimeField(_("Hora Início"))
     end_time = models.DateTimeField(_("Hora Fim"), blank=True, null=True)
     task_id = models.CharField(_("ID da Tarefa"), max_length=36, blank=True, null=True)
