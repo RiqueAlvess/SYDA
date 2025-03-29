@@ -5,8 +5,8 @@ from django.utils.translation import gettext as _
 class SpecialCharacterValidator:
     """Validador que exige pelo menos um caractere especial."""
     
-    def validate(self, password):
-        """Removeu o parâmetro 'user' pois não era utilizado."""
+    def validate(self, password, user=None):
+        """O parâmetro 'user' é necessário para compatibilidade com a interface de validação do Django."""
         if not re.findall(r"[!@#$%^&*(),.?\":{}|<>]", password):
             raise ValidationError(
                 _("A senha deve conter pelo menos um caractere especial."),
