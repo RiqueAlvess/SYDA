@@ -43,6 +43,11 @@ class User(AbstractUser):
     email = models.EmailField(_("endereço de email"), unique=True)
     full_name = models.CharField(_("nome completo"), max_length=150)
     position = models.CharField(_("cargo"), max_length=100)
+    # Adicionar relacionamento com cliente
+    client = models.ForeignKey('clients.Client', on_delete=models.CASCADE, 
+                              null=True, blank=True, 
+                              verbose_name=_("Cliente"),
+                              related_name="users")
     
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["full_name", "position"]
