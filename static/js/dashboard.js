@@ -383,30 +383,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Atualização dos KPIs na interface
     function updateKPIs() {
-        if (DOM.kpis.rate) DOM.kpis.rate.textContent = `${state.metrics.rate.toFixed(2)}%`;
-        if (DOM.kpis.totalCost) DOM.kpis.totalCost.textContent = formatCurrency(state.metrics.cost);
-        if (DOM.kpis.daysOff) DOM.kpis.daysOff.textContent = state.metrics.totalDays;
-        if (DOM.kpis.employeesVsAbsences) DOM.kpis.employeesVsAbsences.textContent = 
-            `${state.metrics.totalEmployees} / ${state.metrics.totalAbsences}`;
-        if (DOM.kpis.hoursOff) DOM.kpis.hoursOff.textContent = `${state.metrics.totalHours} horas`;
-        if (DOM.kpis.hourlyRate) DOM.kpis.hourlyRate.textContent = formatCurrency(CONFIG.HOURLY_RATE);
-        if (DOM.kpis.costValue) DOM.kpis.costValue.textContent = formatCurrency(state.metrics.cost);
-        if (DOM.kpis.costPercent && state.metrics.costPercentage) DOM.kpis.costPercent.textContent = 
-            `Representa ${state.metrics.costPercentage.toFixed(2)}% da folha`;
-        if (DOM.kpis.savings10) DOM.kpis.savings10.textContent = formatCurrency(state.metrics.cost * 0.1);
-        if (DOM.kpis.savings20) DOM.kpis.savings20.textContent = formatCurrency(state.metrics.cost * 0.2);
-        if (DOM.kpis.savings30) DOM.kpis.savings30.textContent = formatCurrency(state.metrics.cost * 0.3);
+        DOM.kpis.rate?.textContent = `${state.metrics.rate.toFixed(2)}%`;
+        DOM.kpis.totalCost?.textContent = formatCurrency(state.metrics.cost);
+        DOM.kpis.daysOff?.textContent = state.metrics.totalDays;
+        DOM.kpis.employeesVsAbsences?.textContent = `${state.metrics.totalEmployees} / ${state.metrics.totalAbsences}`;
+        DOM.kpis.hoursOff?.textContent = `${state.metrics.totalHours} horas`;
+        DOM.kpis.hourlyRate?.textContent = formatCurrency(CONFIG.HOURLY_RATE);
+        DOM.kpis.costValue?.textContent = formatCurrency(state.metrics.cost);
+        if (state.metrics.costPercentage) {
+            DOM.kpis.costPercent?.textContent = `Representa ${state.metrics.costPercentage.toFixed(2)}% da folha`;
+        }
+        DOM.kpis.savings10?.textContent = formatCurrency(state.metrics.cost * 0.1);
+        DOM.kpis.savings20?.textContent = formatCurrency(state.metrics.cost * 0.2);
+        DOM.kpis.savings30?.textContent = formatCurrency(state.metrics.cost * 0.3);
         
         console.log("KPIs updated");
     }
 
     // Configuração dos listeners de eventos para filtros
     function setupEventListeners() {
-        if (DOM.filters.startDate) DOM.filters.startDate.addEventListener('change', handleFilterChange);
-        if (DOM.filters.endDate) DOM.filters.endDate.addEventListener('change', handleFilterChange);
-        if (DOM.filters.unit) DOM.filters.unit.addEventListener('change', handleFilterChange);
-        if (DOM.filters.department) DOM.filters.department.addEventListener('change', handleFilterChange);
-        if (DOM.filters.situation) DOM.filters.situation.addEventListener('change', handleFilterChange);
+        DOM.filters.startDate?.addEventListener('change', handleFilterChange);
+        DOM.filters.endDate?.addEventListener('change', handleFilterChange);
+        DOM.filters.unit?.addEventListener('change', handleFilterChange);
+        DOM.filters.department?.addEventListener('change', handleFilterChange);
+        DOM.filters.situation?.addEventListener('change', handleFilterChange);
         
         console.log("Event listeners set up");
     }
@@ -436,11 +436,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Utilitários de interface
     function showLoading() {
-        if (DOM.loading) DOM.loading.style.display = 'flex';
+        DOM.loading?.style.display = 'flex';
     }
 
     function hideLoading() {
-        if (DOM.loading) DOM.loading.style.display = 'none';
+        DOM.loading?.style.display = 'none';
     }
 
     function handleError(error) {
