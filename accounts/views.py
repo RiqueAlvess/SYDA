@@ -10,7 +10,7 @@ from api_config.models import EmployeeCredentials, AbsenceCredentials, SyncLog
 from api_config.forms import EmployeeCredentialsForm, AbsenceCredentialsForm
 from clients.models import Client
 from clients.mixins import ClientQuerySetMixin
-from .forms import CustomAuthenticationForm 
+from .forms import CustomAuthenticationForm, CustomUserCreationForm
 
 
 class ApiConfigView(LoginRequiredMixin, TemplateView):
@@ -185,7 +185,7 @@ from django.views.decorators.csrf import csrf_protect
 class CustomLoginView(LoginView):
     """View para login personalizada."""
     
-    form_class = CustomAuthenticationForm
+    form_class = CustomUserCreationForm
     template_name = "accounts/login.html"
     
     def dispatch(self, request, *args, **kwargs):
