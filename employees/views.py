@@ -15,6 +15,7 @@ from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 
 from clients.models import Client
+from clients.mixins import ClientQuerySetMixin  # Import adicionado
 from api_config.models import SyncLog, EmployeeCredentials, AbsenceCredentials
 from .models import Employee, Absence
 from .services import APIService
@@ -26,7 +27,7 @@ from .tasks import sync_employees_task, sync_absences_task
 DAYS_OFF_LABEL = "Dias Afastados"          # substitui duplicado 4x
 NUM_ATTESTADOS_LABEL = "Número de Atestados"  # substitui duplicado 4x
 
-class EmployeeListView(LoginRequiredMixin, ListView):
+class EmployeeListView(LoginRequiredMixin, ClientQuerySetMixin, ListView):
     """View para listar funcionários."""
     model = Employee
     template_name = 'employees/employee_list.html'
@@ -34,11 +35,13 @@ class EmployeeListView(LoginRequiredMixin, ListView):
     paginate_by = 20
     
     def get_queryset(self):
-        # Uso do primeiro cliente (simplificação)
-        client = Client.objects.first()
+        # Uso do cliente a partir da requisição
+        client = self.request.client
+        if not client:
+            return Employee.objects.none()
         queryset = Employee.objects.filter(client=client)
         
-        # Filtro por situacao
+        # Filtro por situação
         situacao = self.request.GET.get('situacao')
         if situacao:
             queryset = queryset.filter(situacao=situacao)
@@ -60,14 +63,17 @@ class EmployeeListView(LoginRequiredMixin, ListView):
         
         context['search'] = self.request.GET.get('search', '')
         context['situacao'] = self.request.GET.get('situacao', '')
-
-        client = Client.objects.first()
+        
+        client = self.request.client
+        if not client:
+            context['no_client'] = True
+            return context
 
         # Situações disponíveis
         situacoes = self._buscar_situacoes(client)
         context['situacoes_disponiveis'] = [s for s in situacoes if s]
         
-        # Contagens por situacao
+        # Contagens por situação
         context['situacao_counts'] = self._buscar_situacao_counts(client, situacoes)
 
         # Última sincronização de funcionários
@@ -125,7 +131,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['active'] = 'dashboard'
         
-        client = Client.objects.first()
+        client = self.request.client
         if not client:
             context['no_client'] = True
             return context
@@ -420,8 +426,7 @@ def sync_employees(request):
     """View para sincronizar funcionários."""
     if request.method == 'POST':
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        client = Client.objects.first()
-        
+        client = request.client
         if not client:
             if is_ajax:
                 return JsonResponse({'success': False, 'message': 'Nenhum cliente encontrado.'})
@@ -466,8 +471,7 @@ def sync_absences(request):
     """View para sincronizar absenteísmo."""
     if request.method == 'POST':
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        client = Client.objects.first()
-        
+        client = request.client
         if not client:
             if is_ajax:
                 return JsonResponse({'success': False, 'message': 'Nenhum cliente encontrado.'})
@@ -600,7 +604,7 @@ def sync_stop(request, sync_id):
 @login_required
 def dashboard_employees_api(request):
     """API para obter dados de funcionários para o dashboard (compatibilidade)."""
-    client = Client.objects.first()
+    client = request.client
     if not client:
         return JsonResponse([], safe=False)
     
@@ -612,7 +616,7 @@ def dashboard_employees_api(request):
 @login_required
 def dashboard_absences_api(request):
     """API para obter dados de absenteísmo para o dashboard (compatibilidade)."""
-    client = Client.objects.first()
+    client = request.client
     if not client:
         return JsonResponse([], safe=False)
     
