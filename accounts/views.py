@@ -185,7 +185,7 @@ from django.views.decorators.csrf import csrf_protect
 class CustomLoginView(LoginView):
     """View para login personalizada."""
     
-    form_class = CustomUserCreationForm
+    form_class = CustomAuthenticationForm  # Alterado de CustomUserCreationForm para CustomAuthenticationForm
     template_name = "accounts/login.html"
     
     def dispatch(self, request, *args, **kwargs):
