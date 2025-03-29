@@ -64,6 +64,23 @@ class SignUpView(CreateView):
     
     def form_valid(self, form):
         response = super().form_valid(form)
+        user = self.object
+        
+        # Associar usuário a um cliente - baseado no domínio do email ou outras regras
+        email_domain = user.email.split('@')[-1]
+        
+        # Tentar encontrar cliente existente com este domínio ou criar um
+        client, created = Client.objects.get_or_create(
+            subdomain=email_domain.split('.')[0],
+            defaults={
+                'name': email_domain.split('.')[0].capitalize(),
+            }
+        )
+        
+        # Definir o cliente para este usuário
+        user.client = client
+        user.save()
+        
         # Autenticar e fazer login do usuário após o registro
         email = form.cleaned_data.get("email")
         password = form.cleaned_data.get("password1")
