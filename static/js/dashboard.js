@@ -1,6 +1,11 @@
-// Modificações para melhorar o tratamento de erros em static/js/dashboard.js
-
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se o Plotly está disponível
+    if (typeof Plotly === 'undefined') {
+        console.error('Biblioteca Plotly não foi carregada corretamente.');
+        // Mensagem de erro já é exibida no template
+        return;
+    }
+
     // Se CHART_CONFIG não estiver definido globalmente, define um valor padrão
     const chartConfig = (typeof window.CHART_CONFIG !== 'undefined') ? window.CHART_CONFIG : { displaylogo: false };
 
@@ -105,16 +110,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Verifica se todos os elementos DOM necessários estão presentes
     function verifyDomElements() {
-        // Verifica elementos dos gráficos
-        for (const [key, element] of Object.entries(DOM.charts)) {
-            if (!element) {
-                console.error(`Elemento DOM não encontrado: charts.${key}`);
-                return false;
-            }
+        // Verificar pelo menos um elemento de cada categoria
+        const hasCharts = Object.values(DOM.charts).some(el => el !== null);
+        const hasKpis = Object.values(DOM.kpis).some(el => el !== null);
+        
+        if (!hasCharts) {
+            console.error("Nenhum elemento de gráfico encontrado no DOM");
         }
         
-        // Se chegamos aqui, tudo está OK (não precisamos verificar todos os elementos)
-        return true;
+        if (!hasKpis) {
+            console.error("Nenhum elemento KPI encontrado no DOM");
+        }
+        
+        return hasCharts && hasKpis;
     }
 
     // Carregamento dos dados via API
@@ -133,14 +141,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!employeesRes.ok) {
-                const errorText = await employeesRes.text();
-                console.error("Erro na API de funcionários:", errorText);
                 throw new Error(`Falha ao carregar dados de funcionários (${employeesRes.status})`);
             }
             
             if (!absencesRes.ok) {
-                const errorText = await absencesRes.text();
-                console.error("Erro na API de absenteísmo:", errorText);
                 throw new Error(`Falha ao carregar dados de absenteísmo (${absencesRes.status})`);
             }
             
@@ -151,10 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 employees: state.rawEmployees.length,
                 absences: state.rawAbsences.length
             });
-            
-            if (!state.rawEmployees.length || !state.rawAbsences.length) {
-                console.warn("Um ou mais conjuntos de dados estão vazios");
-            }
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
             throw new Error(`Erro ao carregar dados: ${error.message}`);
@@ -186,8 +186,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             state.filteredAbsences = state.rawAbsences.filter(absence => {
                 if (!absence.dt_inicio_atestado) return false;
-                const date = new Date(absence.dt_inicio_atestado);
-                return date >= startDate && date <= endDate;
+                try {
+                    const date = new Date(absence.dt_inicio_atestado);
+                    return date >= startDate && date <= endDate;
+                } catch (e) {
+                    console.warn("Data inválida:", absence.dt_inicio_atestado);
+                    return false;
+                }
             });
             
             console.log("Absences filtradas por data:", {
@@ -206,9 +211,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cálculo das métricas
     function calculateMetrics() {
         try {
-            const totalEmployees = state.rawEmployees.length;
+            const totalEmployees = state.rawEmployees.length || 1; // Evitar divisão por zero
             const totalAbsences = state.filteredAbsences.length;
-            const totalDays = state.filteredAbsences.reduce((sum, a) => sum + (a.dias_afastados || 0), 0);
+            const totalDays = state.filteredAbsences.reduce((sum, a) => sum + (parseInt(a.dias_afastados) || 0), 0);
             const totalHours = totalDays * 8;
             const cost = totalHours * CONFIG.HOURLY_RATE;
             
@@ -237,8 +242,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error("Erro ao calcular métricas:", error);
             state.metrics = {
-                totalEmployees: 0,
-                totalAbsences: 0,
+                totalEmployees: state.rawEmployees.length || 1,
+                totalAbsences: state.filteredAbsences.length || 0,
                 totalDays: 0,
                 totalHours: 0,
                 cost: 0,
@@ -255,12 +260,12 @@ document.addEventListener('DOMContentLoaded', function() {
             prepareChartData();
             
             console.log("Renderizando gráficos individuais...");
-            renderBarChart('units', 'Unidades', ['Dias', 'Atestados']);
-            renderBarChart('departments', 'Setores', ['Dias', 'Atestados']);
-            renderBarChart('cid', 'CIDs', ['Atestados', 'Dias']);
-            renderLineChart();
-            renderPieChart();
-            renderCostChart();
+            if (DOM.charts.units) renderBarChart('units', 'Unidades', ['Dias', 'Atestados']);
+            if (DOM.charts.departments) renderBarChart('departments', 'Setores', ['Dias', 'Atestados']);
+            if (DOM.charts.cid) renderBarChart('cid', 'CIDs', ['Atestados', 'Dias']);
+            if (DOM.charts.months) renderLineChart();
+            if (DOM.charts.gender) renderPieChart();
+            if (DOM.charts.costSector) renderCostChart();
             
             console.log("Todos os gráficos renderizados com sucesso!");
         } catch (error) {
@@ -307,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     groups[key] = { primary: 0, secondary: 0 };
                 }
                 
-                groups[key].primary += a.dias_afastados || 0;
+                groups[key].primary += parseInt(a.dias_afastados) || 0;
                 groups[key].secondary++;
             });
 
@@ -332,13 +337,17 @@ document.addEventListener('DOMContentLoaded', function() {
             state.filteredAbsences.forEach(a => {
                 if (!a.dt_inicio_atestado) return;
                 
-                const month = a.dt_inicio_atestado.slice(0, 7);
-                if (!months[month]) {
-                    months[month] = { dias: 0, atestados: 0 };
+                try {
+                    const month = a.dt_inicio_atestado.slice(0, 7);
+                    if (!months[month]) {
+                        months[month] = { dias: 0, atestados: 0 };
+                    }
+                    
+                    months[month].dias += parseInt(a.dias_afastados) || 0;
+                    months[month].atestados++;
+                } catch (e) {
+                    console.warn("Erro ao processar data:", a.dt_inicio_atestado);
                 }
-                
-                months[month].dias += a.dias_afastados || 0;
-                months[month].atestados++;
             });
 
             return Object.entries(months)
@@ -383,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!sectorCosts[sector]) {
                     sectorCosts[sector] = { days: 0 };
                 }
-                sectorCosts[sector].days += a.dias_afastados || 0;
+                sectorCosts[sector].days += parseInt(a.dias_afastados) || 0;
             });
             
             return Object.entries(sectorCosts)
@@ -404,6 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = state.charts[chartKey];
             if (!data || !data.length) {
                 console.log(`Sem dados para o gráfico ${chartKey}`);
+                showEmptyState(chartKey);
                 return;
             }
             
@@ -430,13 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`Gráfico de barras renderizado: ${chartKey}`);
         } catch (error) {
             console.error(`Erro ao renderizar gráfico de barras ${chartKey}:`, error);
-            const chartElement = DOM.charts[chartKey];
-            if (chartElement) {
-                chartElement.innerHTML = `<div class="text-center p-4">
-                    <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 2rem;"></i>
-                    <p>Não foi possível renderizar este gráfico.</p>
-                </div>`;
-            }
+            showEmptyState(chartKey);
         }
     }
 
@@ -445,6 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = state.charts.months;
             if (!data || !data.length) {
                 console.log("Sem dados para o gráfico de meses");
+                showEmptyState('months');
                 return;
             }
             
@@ -480,13 +485,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Gráfico de linha renderizado");
         } catch (error) {
             console.error("Erro ao renderizar gráfico de linha:", error);
-            const chartElement = DOM.charts.months;
-            if (chartElement) {
-                chartElement.innerHTML = `<div class="text-center p-4">
-                    <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 2rem;"></i>
-                    <p>Não foi possível renderizar este gráfico.</p>
-                </div>`;
-            }
+            showEmptyState('months');
         }
     }
 
@@ -495,6 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = state.charts.gender;
             if (!data || !data.length) {
                 console.log("Sem dados para o gráfico de gênero");
+                showEmptyState('gender');
                 return;
             }
             
@@ -518,13 +518,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Gráfico de pizza renderizado");
         } catch (error) {
             console.error("Erro ao renderizar gráfico de pizza:", error);
-            const chartElement = DOM.charts.gender;
-            if (chartElement) {
-                chartElement.innerHTML = `<div class="text-center p-4">
-                    <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 2rem;"></i>
-                    <p>Não foi possível renderizar este gráfico.</p>
-                </div>`;
-            }
+            showEmptyState('gender');
         }
     }
 
@@ -533,6 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = state.charts.costSector;
             if (!data || !data.length) {
                 console.log("Sem dados para o gráfico de custos");
+                showEmptyState('costSector');
                 return;
             }
             
@@ -556,13 +551,20 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Gráfico de custos renderizado");
         } catch (error) {
             console.error("Erro ao renderizar gráfico de custos:", error);
-            const chartElement = DOM.charts.costSector;
-            if (chartElement) {
-                chartElement.innerHTML = `<div class="text-center p-4">
-                    <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 2rem;"></i>
-                    <p>Não foi possível renderizar este gráfico.</p>
-                </div>`;
-            }
+            showEmptyState('costSector');
+        }
+    }
+
+    // Função para mostrar estado vazio em um gráfico
+    function showEmptyState(chartKey) {
+        const chartElement = DOM.charts[chartKey];
+        if (chartElement) {
+            chartElement.innerHTML = `
+            <div class="error-placeholder">
+                <i class="fas fa-chart-bar error-icon"></i>
+                <h4>Sem dados disponíveis</h4>
+                <p>Não há dados suficientes para exibir este gráfico.</p>
+            </div>`;
         }
     }
 
@@ -651,7 +653,13 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             window.addEventListener('resize', function() {
                 Object.values(DOM.charts).forEach(chart => {
-                    if (chart) Plotly.Plots.resize(chart);
+                    if (chart && typeof Plotly !== 'undefined' && Plotly.Plots) {
+                        try {
+                            Plotly.Plots.resize(chart);
+                        } catch (e) {
+                            console.warn("Erro ao redimensionar gráfico:", e);
+                        }
+                    }
                 });
             });
         } catch (error) {
